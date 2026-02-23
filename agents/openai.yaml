@@ -1,0 +1,4 @@
+interface:
+  display_name: "SDD Plan Maintainer"
+  short_description: "Plan/govern SDD lifecycle with optional harness handoff"
+  default_prompt: "Use $sdd-plan-maintainer when users ask for concrete feature or fix plans, plan refinement, phased progress tracking, optional harness state handoff, or plan completion and archive governance."
