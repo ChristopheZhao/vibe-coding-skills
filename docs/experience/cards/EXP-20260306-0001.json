@@ -1,0 +1,60 @@
+{
+  "id": "EXP-20260306-0001",
+  "created_at": "2026-03-06T15:45:34Z",
+  "updated_at": "2026-03-06T15:45:34Z",
+  "title": "构建经验沉淀skill时的边界与触发优先级实践",
+  "problem_signature": "在设计经验沉淀skill过程中，出现‘skill价值定位’与‘实现功能化’混淆，以及显式触发被低打扰策略误伤导致漏触发。",
+  "problem_signature_norm": "在设计经验沉淀skill过程中，出现‘skill价值定位’与‘实现功能化’混淆，以及显式触发被低打扰策略误伤导致漏触发。",
+  "decision_rules": [
+    "先定义skill价值边界（先验/经验/流程引导），再决定是否引入脚本能力。",
+    "用户显式触发优先级最高，不能被低打扰与冷却规则拦截。",
+    "低打扰仅作用于自动建议触发（suggest-once），不作用于manual-explicit。",
+    "示例短语是语义锚点（e.g.），不是硬编码等值匹配规则。",
+    "经验卡产物必须pointer-first：source_event_refs/doc_refs可追溯且可移植。",
+    "把质量约束下沉到脚本校验，避免只停留在文档原则。"
+  ],
+  "review_checklist": [
+    "是否明确了skill不承担运行时编排功能？",
+    "是否定义了显式触发优先级并写入规则？",
+    "低打扰规则是否仅限自动建议分支？",
+    "source_event_refs是否可解析到事件ID或相对路径锚点？",
+    "doc_refs是否全部为repo-relative而非绝对路径？",
+    "是否记录了trigger_mode和用户确认元数据？"
+  ],
+  "source_event_refs": [
+    "docs/experience/sources/2026-03-06-experience-capture-build-lessons.md#skill-value-boundary",
+    "docs/experience/sources/2026-03-06-experience-capture-build-lessons.md#trigger-priority",
+    "docs/experience/sources/2026-03-06-experience-capture-build-lessons.md#quality-and-portability"
+  ],
+  "doc_refs": [
+    "skills/experience-capture/SKILL.md",
+    "skills/experience-capture/references/reference/trigger-rules.md",
+    "skills/experience-capture/references/reference/card-schema.md",
+    "docs/plans/archive/2026-03/PLAN-20260306-001.md"
+  ],
+  "tags": [
+    "skill-design",
+    "experience-capture",
+    "trigger-priority",
+    "boundary",
+    "quality-gates"
+  ],
+  "context_constraints": [
+    "适用于隐式触发为主的AI coding skill体系",
+    "适用于需要低打扰但不能牺牲用户显式意图响应的场景"
+  ],
+  "anti_patterns": [
+    "把skill做成运行时功能模块",
+    "用低打扰规则拦截用户显式触发",
+    "仅文档约束不做脚本校验"
+  ],
+  "outcome": "形成了可复用的skill构建准则：边界先行、触发优先级明确、质量门禁脚本化。",
+  "confidence": "high",
+  "owner": "codex",
+  "capture_meta": {
+    "trigger_mode": "manual-explicit",
+    "confirmed_by_user": true,
+    "confirmation_note": "User explicitly requested to summarize and sediment this experience via experience-capture.",
+    "confirmed_at": "2026-03-06T15:45:34Z"
+  }
+}

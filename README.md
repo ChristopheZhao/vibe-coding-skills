@@ -22,6 +22,11 @@ vibe-coding-skills/
       agents/
       references/
       scripts/
+    experience-capture/
+      SKILL.md
+      agents/
+      references/
+      scripts/
 ```
 
 ## Naming Rules
@@ -52,6 +57,7 @@ Validate one skill:
 ```bash
 ./.devtools/smoke.sh --skill-dir skills/sdd-plan-maintainer
 ./.devtools/smoke.sh --skill-dir skills/layered-project-memory
+./.devtools/smoke.sh --skill-dir skills/experience-capture
 ```
 
 Smoke architecture:
