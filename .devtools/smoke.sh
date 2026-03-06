@@ -91,8 +91,20 @@ if [[ ! -f "$SKILL_ROOT/SKILL.md" ]]; then
   exit 1
 fi
 
+SMOKE_SH="$SKILL_ROOT/scripts/smoke.sh"
+SMOKE_PY="$SKILL_ROOT/scripts/smoke.py"
+SMOKE_CMD=()
+if [[ -f "$SMOKE_SH" ]]; then
+  SMOKE_CMD=("bash" "$SMOKE_SH")
+elif [[ -f "$SMOKE_PY" ]]; then
+  SMOKE_CMD=("$PYTHON_BIN" "$SMOKE_PY")
+else
+  echo "error: no smoke entry found for skill: $SKILL_ROOT (expected scripts/smoke.sh or scripts/smoke.py)" >&2
+  exit 1
+fi
+
 if [[ -z "$TMP_ROOT" ]]; then
-  TMP_ROOT="$(mktemp -d /tmp/sdd-plan-smoke-XXXXXX)"
+  TMP_ROOT="$(mktemp -d "/tmp/$(basename "$SKILL_ROOT")-smoke-XXXXXX")"
 else
   mkdir -p "$TMP_ROOT"
 fi
@@ -104,31 +116,10 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Redirect pycache writes to tmp so readonly/mounted paths do not fail smoke.
-export PYTHONPYCACHEPREFIX="$TMP_ROOT/.pycache"
+"${SMOKE_CMD[@]}" \
+  --repo-root "$REPO_ROOT" \
+  --skill-root "$SKILL_ROOT" \
+  --python "$PYTHON_BIN" \
+  --tmp-root "$TMP_ROOT"
 
-PLAN_OPS="$SKILL_ROOT/scripts/plan_ops.py"
-
-"$PYTHON_BIN" -m py_compile "$PLAN_OPS"
-"$PYTHON_BIN" "$PLAN_OPS" --help >/dev/null
-
-"$PYTHON_BIN" "$PLAN_OPS" ensure --root "$TMP_ROOT" >/dev/null
-"$PYTHON_BIN" "$PLAN_OPS" create --root "$TMP_ROOT" \
-  --id PLAN-SMOKE-001 --title "Smoke Validation" --kind feature --priority P1 >/dev/null
-"$PYTHON_BIN" "$PLAN_OPS" status --root "$TMP_ROOT" \
-  --id PLAN-SMOKE-001 --status in_progress --note "smoke start" >/dev/null
-"$PYTHON_BIN" "$PLAN_OPS" doctor --root "$TMP_ROOT" >/dev/null
-"$PYTHON_BIN" "$PLAN_OPS" dashboard --root "$TMP_ROOT" >/dev/null
-
-PLAN_FILE="$TMP_ROOT/docs/plans/active/PLAN-SMOKE-001.md"
-sed -i 's/^- Status: in_progress$/- Status: completed/' "$PLAN_FILE"
-
-if "$PYTHON_BIN" "$PLAN_OPS" doctor --root "$TMP_ROOT" >/dev/null; then
-  echo "error: expected doctor to fail on doc status drift" >&2
-  exit 1
-fi
-
-"$PYTHON_BIN" "$PLAN_OPS" doctor --root "$TMP_ROOT" --fix >/dev/null
-"$PYTHON_BIN" "$PLAN_OPS" doctor --root "$TMP_ROOT" >/dev/null
-
-echo "smoke passed: $TMP_ROOT"
+echo "smoke passed: skill=$(basename "$SKILL_ROOT") tmp=$TMP_ROOT"

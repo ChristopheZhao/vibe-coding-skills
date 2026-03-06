@@ -17,6 +17,11 @@ vibe-coding-skills/
       agents/
       references/
       scripts/
+    layered-project-memory/
+      SKILL.md
+      agents/
+      references/
+      scripts/
 ```
 
 ## Naming Rules
@@ -46,7 +51,12 @@ Validate one skill:
 
 ```bash
 ./.devtools/smoke.sh --skill-dir skills/sdd-plan-maintainer
+./.devtools/smoke.sh --skill-dir skills/layered-project-memory
 ```
+
+Smoke architecture:
+- `.devtools/smoke.sh` is a dispatcher only.
+- Each skill owns its smoke implementation under `skills/<skill>/scripts/smoke.sh` (or `smoke.py`).
 
 Release one skill to Codex:
 
