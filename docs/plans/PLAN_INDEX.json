@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "plans": [
+    {
+      "id": "PLAN-20260226-001",
+      "title": "Layered project memory skill design",
+      "kind": "feature",
+      "status": "archived",
+      "priority": "P0",
+      "owner": "codex",
+      "file_path": "docs/plans/archive/2026-02/PLAN-20260226-001.md",
+      "confirmed_by_user": true,
+      "created_at": "2026-02-26T14:41:17Z",
+      "updated_at": "2026-02-28T14:51:23Z",
+      "archived_at": "2026-02-28T14:51:23Z",
+      "notes": [
+        {
+          "at": "2026-02-28T14:50:52Z",
+          "text": "Superseded by PLAN-20260226-002; moving to closure flow"
+        },
+        {
+          "at": "2026-02-28T14:51:02Z",
+          "text": "User requested to archive superseded draft"
+        },
+        {
+          "at": "2026-02-28T14:51:13Z",
+          "text": "Closed as superseded by PLAN-20260226-002 with user confirmation"
+        }
+      ]
+    },
+    {
+      "id": "PLAN-20260226-002",
+      "title": "分层项目记忆skill设计与实施",
+      "kind": "feature",
+      "status": "archived",
+      "priority": "P0",
+      "owner": "codex",
+      "file_path": "docs/plans/archive/2026-02/PLAN-20260226-002.md",
+      "confirmed_by_user": true,
+      "created_at": "2026-02-26T14:45:55Z",
+      "updated_at": "2026-02-27T15:53:34Z",
+      "archived_at": "2026-02-27T15:53:34Z",
+      "notes": [
+        {
+          "at": "2026-02-26T15:04:41Z",
+          "text": "Started implementation: executing P0 tasks for layered-project-memory skill"
+        },
+        {
+          "at": "2026-02-26T15:10:23Z",
+          "text": "Completed initial P0 implementation: new layered-project-memory skill skeleton, trigger matrix, retrieval contract, memory_ops init/capture/promote/snapshot/retrieve/doctor, structure+smoke checks passed"
+        },
+        {
+          "at": "2026-02-26T15:12:17Z",
+          "text": "Completed P0 and P1-1: layered-project-memory skill skeleton, references, and memory_ops core commands verified with profile smoke"
+        },
+        {
+          "at": "2026-02-26T15:28:54Z",
+          "text": "Implemented GC retention policy and decoupled CLI regression tests; py_compile, unittest, structure-check, and gc smoke all passed"
+        },
+        {
+          "at": "2026-02-26T15:29:41Z",
+          "text": "All planned tasks implemented and validated; awaiting user confirmation to mark completed"
+        },
+        {
+          "at": "2026-02-27T15:50:57Z",
+          "text": "User confirmed completion after implementation and test verification"
+        }
+      ]
+    }
+  ]
+}
