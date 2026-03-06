@@ -1,0 +1,4 @@
+interface:
+  display_name: "Layered Project Memory"
+  short_description: "Capture layered dev memory for resume/debug/release context"
+  default_prompt: "Use $layered-project-memory when users ask to preserve key project progress, avoid repeated failed attempts, recover interrupted context, or generate focused resume/debug/release memory packs anchored to Git and SDD."
