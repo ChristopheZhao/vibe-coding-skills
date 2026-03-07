@@ -75,6 +75,45 @@ class MemoryOpsCliTests(unittest.TestCase):
         output = run_cmd(args, self.root)
         return json.loads(output.stdout)
 
+    def _summarize(
+        self,
+        *,
+        profile: str = "resume",
+        mode: str = "incremental",
+        plan_id: str | None = None,
+        topic_id: str | None = None,
+        max_events: int = 10,
+    ) -> dict:
+        args = [
+            "summarize",
+            "--profile",
+            profile,
+            "--mode",
+            mode,
+            "--max-events",
+            str(max_events),
+            "--json",
+        ]
+        if plan_id:
+            args += ["--plan-id", plan_id]
+        if topic_id:
+            args += ["--topic-id", topic_id]
+        output = run_cmd(args, self.root)
+        return json.loads(output.stdout)
+
+    def _event_ids(self) -> list[str]:
+        events_path = self.root / "docs" / "memory" / "events" / "events.jsonl"
+        ids: list[str] = []
+        for line in events_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            payload = json.loads(line)
+            event_id = payload.get("id")
+            if isinstance(event_id, str):
+                ids.append(event_id)
+        return ids
+
     def test_repeated_failure_promotes_key_signal(self) -> None:
         plan_id = "PLAN-T-001"
         self._capture(
@@ -183,6 +222,68 @@ class MemoryOpsCliTests(unittest.TestCase):
         self.assertGreaterEqual(len(pack["events"]), 1)
         self.assertIn("doc_refs", pack["events"][0])
         self.assertIn("prepare release checklist", pack["next_actions"])
+
+    def test_summarize_incremental_updates_summary_files(self) -> None:
+        topic_id = "payment-timeout"
+        self._capture(
+            topic_id=topic_id,
+            event_type="decision",
+            summary="switch timeout retry to bounded exponential backoff",
+            impact="high",
+            result="mixed",
+            next_action="update retry middleware config",
+            extra=["--doc-ref", "docs/adr/0042-retry-policy.md#decision"],
+        )
+        first = self._summarize(topic_id=topic_id, mode="incremental")
+        self.assertEqual(first["event_count"], 1)
+
+        self._capture(
+            topic_id=topic_id,
+            event_type="blocker",
+            summary="staging still hits transient gateway timeout spikes",
+            impact="high",
+            result="failed",
+            next_action="add circuit-breaker threshold tuning",
+            extra=["--evidence", "logs/staging-timeout-20260307.txt"],
+        )
+        second = self._summarize(topic_id=topic_id, mode="incremental")
+        self.assertEqual(second["event_count"], 2)
+        self.assertGreaterEqual(second["last_event_seq"], first["last_event_seq"])
+        self.assertEqual(second["last_event_id"], self._event_ids()[-1])
+        self.assertIn("add circuit-breaker threshold tuning", second["highlights"]["next_actions"])
+
+        summary_md = self.root / "docs" / "memory" / "summary" / "current.md"
+        self.assertTrue(summary_md.exists())
+        self.assertIn("## Next Actions", summary_md.read_text(encoding="utf-8"))
+
+    def test_summarize_incremental_falls_back_to_rebuild_when_anchor_is_stale(self) -> None:
+        topic_id = "build-cache"
+        self._capture(
+            topic_id=topic_id,
+            event_type="decision",
+            summary="switch cache key to include lockfile hash",
+            impact="high",
+            result="success",
+        )
+        self._capture(
+            topic_id=topic_id,
+            event_type="milestone",
+            summary="cache hit ratio stabilized above 85 percent",
+            impact="high",
+            result="success",
+        )
+        self._summarize(topic_id=topic_id, mode="rebuild")
+
+        summary_json = self.root / "docs" / "memory" / "summary" / "current.json"
+        payload = json.loads(summary_json.read_text(encoding="utf-8"))
+        payload["last_event_id"] = "EVT-MISSING-9999"
+        payload["last_event_seq"] = 9999
+        summary_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+        refreshed = self._summarize(topic_id=topic_id, mode="incremental")
+        self.assertEqual(refreshed["mode"], "rebuild")
+        self.assertEqual(refreshed["event_count"], 2)
+        self.assertEqual(refreshed["last_event_id"], self._event_ids()[-1])
 
 
 if __name__ == "__main__":

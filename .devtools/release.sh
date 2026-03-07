@@ -4,14 +4,14 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  release.sh [--repo-root PATH] [--skill-dir PATH] [--skill-name NAME] [--tool codex|claude|cursor|gemini] [--runtime-root PATH] [--dry-run] [--no-delete]
+  release.sh [--repo-root PATH] [--skill-dir PATH] [--skill-name NAME] [--tool codex|claude|cursor|gemini|copilot] [--runtime-root PATH] [--dry-run] [--no-delete]
 
 Options:
   --repo-root PATH      Repository root. Defaults to script parent.
   --skill-dir PATH      Skill source directory (absolute or repo-relative).
                         Default: skills/sdd-plan-maintainer
   --skill-name NAME     Skill folder name in runtime target. Default: basename(skill-dir)
-  --tool NAME           Target tool profile. One of: codex, claude, cursor, gemini.
+  --tool NAME           Target tool profile. One of: codex, claude, cursor, gemini, copilot.
                         Default: codex.
   --runtime-root PATH   Target runtime skill directory.
   --dry-run             Show rsync changes without writing.
@@ -100,9 +100,9 @@ done
 REPO_ROOT="$(cd "$REPO_ROOT" && pwd)"
 TOOL="$(printf '%s' "$TOOL" | tr '[:upper:]' '[:lower:]')"
 case "$TOOL" in
-  codex|claude|cursor|gemini) ;;
+  codex|claude|cursor|gemini|copilot) ;;
   *)
-    echo "error: unsupported --tool value: $TOOL (expected codex|claude|cursor|gemini)" >&2
+    echo "error: unsupported --tool value: $TOOL (expected codex|claude|cursor|gemini|copilot)" >&2
     exit 1
     ;;
 esac
@@ -146,6 +146,13 @@ if [[ -z "$RUNTIME_ROOT" ]]; then
         RUNTIME_ROOT="$HOME/.gemini/skills/$SKILL_NAME"
       fi
       ;;
+    copilot)
+      if [[ -n "${COPILOT_HOME:-}" ]]; then
+        RUNTIME_ROOT="$COPILOT_HOME/skills/$SKILL_NAME"
+      elif [[ -n "${HOME:-}" ]]; then
+        RUNTIME_ROOT="$HOME/.copilot/skills/$SKILL_NAME"
+      fi
+      ;;
   esac
 fi
 
@@ -178,6 +185,8 @@ rsync "${RSYNC_ARGS[@]}" \
   --include='/references/***' \
   --include='/scripts/' \
   --include='/scripts/***' \
+  --include='/assets/' \
+  --include='/assets/***' \
   --exclude='*' \
   "$SKILL_ROOT/" "$RUNTIME_ROOT/"
 

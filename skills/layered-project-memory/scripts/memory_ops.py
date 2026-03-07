@@ -16,6 +16,9 @@ from typing import Any, Dict, List, Tuple
 EVENT_TYPES = {"decision", "experiment", "blocker", "fix", "rollback", "milestone", "note"}
 IMPACTS = {"low", "medium", "high"}
 RESULTS = {"unknown", "success", "failed", "mixed"}
+SUMMARY_SCHEMA_VERSION = "2026-03-07"
+SUMMARY_CATEGORY_LIMIT = 8
+SUMMARY_SOURCE_LIMIT = 24
 
 
 def utc_now() -> str:
@@ -65,6 +68,9 @@ def get_paths(root: Path) -> Dict[str, Path]:
         "events": base / "events" / "events.jsonl",
         "insights_dir": base / "insights",
         "snapshots_dir": base / "snapshots",
+        "summary_dir": base / "summary",
+        "summary_json": base / "summary" / "current.json",
+        "summary_md": base / "summary" / "current.md",
     }
 
 
@@ -109,6 +115,7 @@ def ensure_storage(root: Path) -> Dict[str, Path]:
     paths["events_dir"].mkdir(parents=True, exist_ok=True)
     paths["insights_dir"].mkdir(parents=True, exist_ok=True)
     paths["snapshots_dir"].mkdir(parents=True, exist_ok=True)
+    paths["summary_dir"].mkdir(parents=True, exist_ok=True)
 
     now = utc_now()
     if not paths["index"].exists():
@@ -348,6 +355,252 @@ def event_matches_scope(event: Dict[str, Any], plan_id: str | None, topic_id: st
     return True
 
 
+def append_unique_limited(items: List[str], value: str | None, limit: int) -> List[str]:
+    if not value:
+        return items
+    cleaned = value.strip()
+    if not cleaned:
+        return items
+    existing = [item for item in items if item != cleaned]
+    existing.append(cleaned)
+    if len(existing) > limit:
+        existing = existing[-limit:]
+    return existing
+
+
+def parse_event_seq(event_id: str | None) -> int | None:
+    if not event_id or not isinstance(event_id, str):
+        return None
+    try:
+        return int(event_id.rsplit("-", 1)[-1])
+    except (TypeError, ValueError):
+        return None
+
+
+def summary_pointer(event: Dict[str, Any]) -> str | None:
+    doc_refs = event.get("doc_refs")
+    if isinstance(doc_refs, list):
+        for ref in doc_refs:
+            if isinstance(ref, str) and ref.strip():
+                return ref.strip()
+    evidence = event.get("evidence")
+    if isinstance(evidence, list):
+        for ref in evidence:
+            if isinstance(ref, str) and ref.strip():
+                return ref.strip()
+    return None
+
+
+def summary_event_line(event: Dict[str, Any]) -> str:
+    event_id = event.get("id", "?")
+    summary = event.get("summary", "")
+    event_type = event.get("event_type", "unknown")
+    result = event.get("result", "unknown")
+    impact = event.get("impact", "low")
+    line = f"[{event_id}] {summary} ({event_type}/{result}/{impact})"
+    pointer = summary_pointer(event)
+    if pointer:
+        line += f" | ref: {pointer}"
+    return line
+
+
+def summary_required_fields() -> List[str]:
+    return [
+        "version",
+        "schema_version",
+        "generated_at",
+        "mode",
+        "profile",
+        "title",
+        "plan_id",
+        "topic_id",
+        "last_event_seq",
+        "last_event_id",
+        "event_count",
+        "source_event_ids",
+        "state_excerpt",
+        "highlights",
+    ]
+
+
+def empty_summary_payload(
+    profile: str,
+    mode: str,
+    title: str,
+    plan_id: str | None,
+    topic_id: str | None,
+) -> Dict[str, Any]:
+    return {
+        "version": 1,
+        "schema_version": SUMMARY_SCHEMA_VERSION,
+        "generated_at": utc_now(),
+        "mode": mode,
+        "profile": profile,
+        "title": title,
+        "plan_id": plan_id,
+        "topic_id": topic_id,
+        "last_event_seq": 0,
+        "last_event_id": None,
+        "event_count": 0,
+        "source_event_ids": [],
+        "state_excerpt": {
+            "stage": None,
+            "goal": None,
+            "blockers": [],
+            "next_action": None,
+        },
+        "highlights": {
+            "decisions": [],
+            "blockers": [],
+            "fixes": [],
+            "milestones": [],
+            "lessons": [],
+            "next_actions": [],
+        },
+    }
+
+
+def normalize_summary_payload(raw: Dict[str, Any], fallback: Dict[str, Any]) -> Dict[str, Any]:
+    payload = dict(fallback)
+    for key in summary_required_fields():
+        if key in raw:
+            payload[key] = raw[key]
+
+    if not isinstance(payload.get("source_event_ids"), list):
+        payload["source_event_ids"] = []
+    payload["source_event_ids"] = [
+        item.strip()
+        for item in payload["source_event_ids"]
+        if isinstance(item, str) and item.strip()
+    ][:SUMMARY_SOURCE_LIMIT]
+
+    state_excerpt = payload.get("state_excerpt")
+    if not isinstance(state_excerpt, dict):
+        state_excerpt = {}
+    payload["state_excerpt"] = {
+        "stage": state_excerpt.get("stage"),
+        "goal": state_excerpt.get("goal"),
+        "blockers": state_excerpt.get("blockers") if isinstance(state_excerpt.get("blockers"), list) else [],
+        "next_action": state_excerpt.get("next_action"),
+    }
+
+    highlights = payload.get("highlights")
+    if not isinstance(highlights, dict):
+        highlights = {}
+    normalized_highlights: Dict[str, List[str]] = {}
+    for field in ["decisions", "blockers", "fixes", "milestones", "lessons", "next_actions"]:
+        values = highlights.get(field)
+        if not isinstance(values, list):
+            values = []
+        cleaned = [item.strip() for item in values if isinstance(item, str) and item.strip()]
+        normalized_highlights[field] = cleaned[-SUMMARY_CATEGORY_LIMIT:]
+    payload["highlights"] = normalized_highlights
+
+    if not isinstance(payload.get("last_event_seq"), int):
+        payload["last_event_seq"] = 0
+    if payload.get("last_event_seq", 0) < 0:
+        payload["last_event_seq"] = 0
+
+    if payload.get("last_event_id") is not None and not isinstance(payload.get("last_event_id"), str):
+        payload["last_event_id"] = None
+    if not isinstance(payload.get("event_count"), int) or payload["event_count"] < 0:
+        payload["event_count"] = 0
+
+    return payload
+
+
+def summary_scope_from_state(
+    state: Dict[str, Any],
+    plan_id_arg: str | None,
+    topic_id_arg: str | None,
+) -> Tuple[str | None, str | None]:
+    plan_id = plan_id_arg if plan_id_arg is not None else state.get("plan_id")
+    topic_id = topic_id_arg if topic_id_arg is not None else state.get("topic_id")
+    return plan_id, topic_id
+
+
+def summary_state_excerpt(state: Dict[str, Any]) -> Dict[str, Any]:
+    blockers = state.get("blockers")
+    if not isinstance(blockers, list):
+        blockers = []
+    return {
+        "stage": state.get("stage"),
+        "goal": state.get("goal"),
+        "blockers": [str(item) for item in blockers if isinstance(item, str)],
+        "next_action": state.get("next_action"),
+    }
+
+
+def find_event_idx(events: List[Dict[str, Any]], event_id: str | None) -> int:
+    if not event_id:
+        return -1
+    for idx, event in enumerate(events):
+        if event.get("id") == event_id:
+            return idx
+    return -1
+
+
+def merge_event_into_summary(payload: Dict[str, Any], event: Dict[str, Any]) -> None:
+    line = summary_event_line(event)
+    event_type = event.get("event_type")
+    highlights = payload["highlights"]
+    if event_type == "decision":
+        highlights["decisions"] = append_unique_limited(highlights["decisions"], line, SUMMARY_CATEGORY_LIMIT)
+    elif event_type in {"blocker", "rollback"}:
+        highlights["blockers"] = append_unique_limited(highlights["blockers"], line, SUMMARY_CATEGORY_LIMIT)
+    elif event_type == "fix":
+        highlights["fixes"] = append_unique_limited(highlights["fixes"], line, SUMMARY_CATEGORY_LIMIT)
+    elif event_type == "milestone":
+        highlights["milestones"] = append_unique_limited(highlights["milestones"], line, SUMMARY_CATEGORY_LIMIT)
+    elif event_type in {"experiment", "note"} and event.get("result") in {"failed", "mixed"}:
+        highlights["lessons"] = append_unique_limited(highlights["lessons"], line, SUMMARY_CATEGORY_LIMIT)
+
+    next_action = event.get("next_action")
+    if isinstance(next_action, str):
+        highlights["next_actions"] = append_unique_limited(
+            highlights["next_actions"],
+            next_action,
+            SUMMARY_CATEGORY_LIMIT,
+        )
+
+    event_id = event.get("id")
+    if isinstance(event_id, str):
+        payload["source_event_ids"] = append_unique_limited(
+            payload["source_event_ids"],
+            event_id,
+            SUMMARY_SOURCE_LIMIT,
+        )
+
+
+def validate_summary_schema(summary: Dict[str, Any], root: Path, events: List[Dict[str, Any]]) -> List[str]:
+    issues: List[str] = []
+    for field in summary_required_fields():
+        if field not in summary:
+            issues.append(f"summary missing field `{field}`")
+    known_ids = event_id_set(events)
+    last_event_id = summary.get("last_event_id")
+    if last_event_id and last_event_id not in known_ids:
+        issues.append(f"summary last_event_id not found in events: {last_event_id}")
+    last_event_seq = summary.get("last_event_seq")
+    parsed_seq = parse_event_seq(last_event_id)
+    if isinstance(last_event_seq, int) and parsed_seq is not None and last_event_seq < parsed_seq:
+        issues.append(
+            "summary last_event_seq is smaller than parsed last_event_id sequence: "
+            f"{last_event_seq}<{parsed_seq}"
+        )
+    source_ids = summary.get("source_event_ids")
+    if isinstance(source_ids, list):
+        for source_id in source_ids:
+            if isinstance(source_id, str) and source_id not in known_ids:
+                issues.append(f"summary source event id missing: {source_id}")
+    else:
+        issues.append("summary source_event_ids must be a list")
+    summary_md = get_paths(root)["summary_md"]
+    if not summary_md.exists():
+        issues.append(f"summary markdown missing: {summary_md}")
+    return issues
+
+
 def update_state_after_capture(
     state: Dict[str, Any],
     event: Dict[str, Any],
@@ -440,6 +693,16 @@ def create_parser() -> argparse.ArgumentParser:
     retrieve.add_argument("--topic-id", help="Topic scope")
     retrieve.add_argument("--limit", type=int, help="Override profile default limit")
     retrieve.add_argument("--format", choices=["json", "markdown"], default="json")
+
+    summarize = subparsers.add_parser("summarize", help="Build or refresh derived summary from layered memory")
+    summarize.add_argument("--root", default=".", help="Repository root (default: .)")
+    summarize.add_argument("--plan-id", help="Plan scope")
+    summarize.add_argument("--topic-id", help="Topic scope")
+    summarize.add_argument("--profile", choices=["resume", "debug", "release"], default="resume")
+    summarize.add_argument("--mode", choices=["incremental", "rebuild"], default="incremental")
+    summarize.add_argument("--max-events", type=int, default=10, help="Max ranked events consumed per summarize run")
+    summarize.add_argument("--title", default="Project memory summary")
+    summarize.add_argument("--json", action="store_true", help="Print summary payload as JSON")
 
     doctor = subparsers.add_parser("doctor", help="Check storage consistency and schema integrity")
     doctor.add_argument("--root", default=".", help="Repository root (default: .)")
@@ -719,6 +982,133 @@ def render_markdown(pack: Dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def render_summary_markdown(payload: Dict[str, Any]) -> str:
+    state = payload.get("state_excerpt", {})
+    highlights = payload.get("highlights", {})
+
+    lines: List[str] = []
+    lines.append(f"# {payload.get('title')}")
+    lines.append(f"- Generated At: {payload.get('generated_at')}")
+    lines.append(f"- Scope: plan_id={payload.get('plan_id')} topic_id={payload.get('topic_id')}")
+    lines.append(f"- Profile: {payload.get('profile')}")
+    lines.append(f"- Mode: {payload.get('mode')}")
+    lines.append(f"- Last Event Seq: {payload.get('last_event_seq')}")
+    lines.append(f"- Last Event ID: {payload.get('last_event_id')}")
+    lines.append("")
+    lines.append("## State")
+    lines.append(f"- Stage: {state.get('stage')}")
+    lines.append(f"- Goal: {state.get('goal')}")
+    blockers = state.get("blockers") if isinstance(state.get("blockers"), list) else []
+    lines.append(f"- Blockers: {', '.join(blockers) if blockers else '(none)'}")
+    lines.append(f"- Next Action: {state.get('next_action')}")
+
+    section_pairs = [
+        ("Key Decisions", "decisions"),
+        ("Active Blockers", "blockers"),
+        ("Major Fixes", "fixes"),
+        ("Milestones", "milestones"),
+        ("Lessons", "lessons"),
+        ("Next Actions", "next_actions"),
+    ]
+    for title, key in section_pairs:
+        lines.append("")
+        lines.append(f"## {title}")
+        values = highlights.get(key, [])
+        if not isinstance(values, list) or not values:
+            lines.append("- (none)")
+            continue
+        for value in values:
+            lines.append(f"- {value}")
+
+    lines.append("")
+    lines.append("## Source Event IDs")
+    source_event_ids = payload.get("source_event_ids", [])
+    if not isinstance(source_event_ids, list) or not source_event_ids:
+        lines.append("- (none)")
+    else:
+        for event_id in source_event_ids:
+            lines.append(f"- {event_id}")
+    return "\n".join(lines) + "\n"
+
+
+def cmd_summarize(args: argparse.Namespace) -> int:
+    root = Path(args.root).resolve()
+    paths = require_initialized(root)
+    index = read_json(paths["index"])
+    state = read_json(paths["state"])
+    events = read_events(paths["events"])
+
+    plan_id, topic_id = summary_scope_from_state(state, args.plan_id, args.topic_id)
+    scoped_events = [event for event in events if event_matches_scope(event, plan_id, topic_id)]
+
+    fallback = empty_summary_payload(args.profile, args.mode, args.title, plan_id, topic_id)
+    existing_payload: Dict[str, Any] | None = None
+    if paths["summary_json"].exists():
+        try:
+            existing_payload = normalize_summary_payload(read_json(paths["summary_json"]), fallback)
+        except Exception:  # noqa: BLE001
+            existing_payload = None
+
+    force_rebuild = args.mode == "rebuild"
+    use_incremental = args.mode == "incremental" and existing_payload is not None and not force_rebuild
+    if use_incremental:
+        if (
+            existing_payload.get("plan_id") != plan_id
+            or existing_payload.get("topic_id") != topic_id
+            or existing_payload.get("profile") != args.profile
+        ):
+            use_incremental = False
+
+    if use_incremental:
+        payload = normalize_summary_payload(existing_payload or {}, fallback)
+        last_event_idx = find_event_idx(scoped_events, payload.get("last_event_id"))
+        if payload.get("last_event_id") and last_event_idx < 0:
+            use_incremental = False
+        else:
+            pending = scoped_events[last_event_idx + 1 :] if last_event_idx >= 0 else scoped_events
+            ranked_pending = rank_events(pending, args.profile, plan_id, topic_id)
+            selected = ranked_pending[: max(args.max_events, 1)]
+            for event in selected:
+                merge_event_into_summary(payload, event)
+            payload["mode"] = "incremental"
+    if not use_incremental:
+        payload = empty_summary_payload(args.profile, "rebuild", args.title, plan_id, topic_id)
+        ranked = rank_events(scoped_events, args.profile, plan_id, topic_id)
+        selected = ranked[: max(args.max_events, 1)]
+        for event in selected:
+            merge_event_into_summary(payload, event)
+
+    payload["schema_version"] = SUMMARY_SCHEMA_VERSION
+    payload["generated_at"] = utc_now()
+    payload["profile"] = args.profile
+    payload["title"] = args.title
+    payload["plan_id"] = plan_id
+    payload["topic_id"] = topic_id
+    payload["event_count"] = len(scoped_events)
+    payload["state_excerpt"] = summary_state_excerpt(state)
+    payload["last_event_id"] = scoped_events[-1].get("id") if scoped_events else None
+    payload["last_event_seq"] = int(index.get("event_seq", 0))
+    payload["source_event_ids"] = payload.get("source_event_ids", [])[-SUMMARY_SOURCE_LIMIT:]
+
+    next_action = state.get("next_action")
+    if isinstance(next_action, str):
+        payload["highlights"]["next_actions"] = append_unique_limited(
+            payload["highlights"]["next_actions"],
+            next_action,
+            SUMMARY_CATEGORY_LIMIT,
+        )
+
+    write_json(paths["summary_json"], payload)
+    paths["summary_md"].write_text(render_summary_markdown(payload), encoding="utf-8")
+
+    if args.json:
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    else:
+        print(f"summary: {paths['summary_json']}")
+        print(f"summary_md: {paths['summary_md']}")
+    return 0
+
+
 def cmd_retrieve(args: argparse.Namespace) -> int:
     root = Path(args.root).resolve()
     paths = require_initialized(root)
@@ -819,7 +1209,14 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     paths = get_paths(root)
     issues: List[str] = []
 
-    required_dirs = [paths["base"], paths["state_dir"], paths["events_dir"], paths["insights_dir"], paths["snapshots_dir"]]
+    required_dirs = [
+        paths["base"],
+        paths["state_dir"],
+        paths["events_dir"],
+        paths["insights_dir"],
+        paths["snapshots_dir"],
+        paths["summary_dir"],
+    ]
     for directory in required_dirs:
         if not directory.exists():
             issues.append(f"missing directory: {directory}")
@@ -912,6 +1309,22 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         if rel not in referenced_insights:
             issues.append(f"orphan insight file: {rel}")
 
+    if paths["summary_json"].exists():
+        try:
+            summary_payload = read_json(paths["summary_json"])
+            issues.extend(validate_summary_schema(summary_payload, root, events))
+            if index is not None:
+                summary_last_seq = summary_payload.get("last_event_seq")
+                if isinstance(summary_last_seq, int) and summary_last_seq > int(index.get("event_seq", 0)):
+                    issues.append(
+                        "summary last_event_seq exceeds index event_seq: "
+                        f"{summary_last_seq}>{index.get('event_seq', 0)}"
+                    )
+        except Exception as exc:  # noqa: BLE001
+            issues.append(f"invalid summary JSON: {exc}")
+    elif paths["summary_md"].exists():
+        issues.append(f"summary markdown exists without json: {paths['summary_md']}")
+
     report = {
         "root": str(root),
         "issue_count": len(issues),
@@ -959,6 +1372,22 @@ def cmd_gc(args: argparse.Namespace) -> int:
     for pinned in [state.get("last_event_id"), index.get("last_event_id")]:
         if isinstance(pinned, str):
             keep_ids.add(pinned)
+
+    summary_payload: Dict[str, Any] | None = None
+    if paths["summary_json"].exists():
+        try:
+            summary_payload = read_json(paths["summary_json"])
+        except Exception:  # noqa: BLE001
+            summary_payload = None
+    if isinstance(summary_payload, dict):
+        summary_last = summary_payload.get("last_event_id")
+        if isinstance(summary_last, str):
+            keep_ids.add(summary_last)
+        source_ids = summary_payload.get("source_event_ids")
+        if isinstance(source_ids, list):
+            for source_id in source_ids:
+                if isinstance(source_id, str):
+                    keep_ids.add(source_id)
 
     snapshot_files = list_snapshot_files(paths)
     if args.retain_snapshots == 0:
@@ -1062,6 +1491,8 @@ def main() -> int:
             return cmd_snapshot(args)
         if args.command == "retrieve":
             return cmd_retrieve(args)
+        if args.command == "summarize":
+            return cmd_summarize(args)
         if args.command == "doctor":
             return cmd_doctor(args)
         if args.command == "gc":

@@ -4,7 +4,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  release-all.sh [--repo-root PATH] [--skills-root PATH] [--tool codex|claude|cursor|gemini] [--runtime-skills-root PATH] [--dry-run] [--no-delete]
+  release-all.sh [--repo-root PATH] [--skills-root PATH] [--tool codex|claude|cursor|gemini|copilot] [--runtime-skills-root PATH] [--dry-run] [--no-delete]
 
 Options:
   --repo-root PATH          Repository root. Defaults to script parent.

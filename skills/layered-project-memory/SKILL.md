@@ -27,6 +27,7 @@ This skill manages layered memory:
 - L1 project state
 - L2 key event index
 - L3 node insight records
+- derived summary for fast context loading
 
 This skill does not:
 - replace Git commit/diff history
@@ -43,6 +44,7 @@ Boundary rules:
 - L2/L3 records must include Git anchors and at least one scope (`plan_id` or `topic_id`) for key events.
 - Retrieval output is pointer-first: reference evidence/doc links and avoid duplicating raw deltas.
 - Memory must not introduce a second lifecycle status machine.
+- Summary is derived from memory records; it is not a second source of truth.
 
 ## Script Decision
 Use `scripts/memory_ops.py` for deterministic storage, retrieval, and consistency checks.
@@ -52,13 +54,15 @@ Avoid manual editing of memory artifacts unless recovery is required.
 1. Classify request as `capture`, `resume`, `debug`, `release`, or `handoff`.
 2. Ensure storage with `memory_ops.py init`.
 3. Record key memory events with `capture` (not every turn) and optional insight fields.
-4. Build context packs using `retrieve --profile <resume|debug|release>`.
-5. Run `doctor` before handoff or after meaningful milestones.
-6. Use `promote/snapshot/gc` only when extra governance is needed.
+4. Refresh derived summary with `summarize --mode <incremental|rebuild>` at key milestones.
+5. Build context packs using `retrieve --profile <resume|debug|release>`.
+6. Run `doctor` before handoff or after meaningful milestones.
+7. Use `promote/snapshot/gc` only when extra governance is needed.
 
 ## Hard Gates
 - Key events require `event_type`, `summary`, Git anchors, and scope (`plan_id` or `topic_id`).
 - Key events should include pointer evidence via `evidence` or `doc_refs`.
+- `summarize` output must be derived from L1/L2/L3; no independent facts in summary.
 - `retrieve` output must follow `references/retrieval-profiles.md`.
 - If retrieval signal is weak, return fallback pack (L1 + recent high-signal L2), never an empty pack.
 

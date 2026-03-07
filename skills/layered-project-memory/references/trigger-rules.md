@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | User asks to continue previous work | Yes | `retrieve --profile resume` |
 | Repeated failure on same problem | Yes | `capture` + optional `promote` + `retrieve --profile debug` |
-| Milestone decision/rollback/blocker | Yes | `capture` (pointer-first evidence) + `doctor` |
+| Milestone decision/rollback/blocker | Yes | `capture` + `summarize --mode incremental` + `doctor` |
 | Release readiness summary request | Yes | `retrieve --profile release` |
 | One-off tiny edit with no continuity | No | Skip memory persistence |
 | Pure Q and A / brainstorming | No | Skip memory persistence |
@@ -27,3 +27,4 @@
 ## Frequency Budget
 - Prefer 1-2 writes per meaningful stage, not per chat turn.
 - Skip capture when no new decision/failure/turning-point signal exists.
+- Run summary compression at key transitions, not every turn.

@@ -70,3 +70,23 @@ Required fields:
 - `key_event_count`
 - `last_event_id`
 - `last_snapshot_id`
+
+## Derived Summary (`docs/memory/summary/current.json` + `current.md`)
+
+Summary is derived from L1/L2/L3 and should not become a second source of truth.
+
+Required fields in `current.json`:
+- `version`
+- `schema_version`
+- `generated_at`
+- `mode` (`incremental|rebuild`)
+- `profile` (`resume|debug|release`)
+- `title`
+- `plan_id`
+- `topic_id`
+- `last_event_seq`
+- `last_event_id`
+- `event_count`
+- `source_event_ids` (list of event ids)
+- `state_excerpt`
+- `highlights` (`decisions`, `blockers`, `fixes`, `milestones`, `lessons`, `next_actions`)

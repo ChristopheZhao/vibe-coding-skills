@@ -27,6 +27,11 @@ vibe-coding-skills/
       agents/
       references/
       scripts/
+    knowledge-refresh/
+      SKILL.md
+      agents/
+      references/
+      scripts/
 ```
 
 ## Naming Rules
@@ -40,9 +45,13 @@ vibe-coding-skills/
 Each `skills/<skill-slug>/` directory must include:
 
 - `SKILL.md`
-- `agents/`
+
+Optional directories (recommended when needed):
+
 - `references/`
 - `scripts/`
+- `agents/` (platform-specific adapters such as `openai.yaml`)
+- `assets/`
 
 Run structure checks before release:
 
@@ -58,6 +67,7 @@ Validate one skill:
 ./.devtools/smoke.sh --skill-dir skills/sdd-plan-maintainer
 ./.devtools/smoke.sh --skill-dir skills/layered-project-memory
 ./.devtools/smoke.sh --skill-dir skills/experience-capture
+./.devtools/smoke.sh --skill-dir skills/knowledge-refresh
 ```
 
 Smoke architecture:
@@ -76,18 +86,39 @@ Release one skill to Claude Code:
 ./.devtools/release.sh --tool claude --skill-dir skills/sdd-plan-maintainer
 ```
 
+Release one skill to Gemini CLI:
+
+```bash
+./.devtools/release.sh --tool gemini --skill-dir skills/sdd-plan-maintainer
+```
+
+Release one skill to GitHub Copilot:
+
+```bash
+./.devtools/release.sh --tool copilot --skill-dir skills/sdd-plan-maintainer
+```
+
 Release all skills:
 
 ```bash
 ./.devtools/release-all.sh --tool codex
 ./.devtools/release-all.sh --tool claude
+./.devtools/release-all.sh --tool gemini
+./.devtools/release-all.sh --tool copilot
 ```
 
 All release operations use a whitelist payload:
 
 - `SKILL.md`
-- `agents/**`
-- `references/**`
-- `scripts/**`
+- `agents/**` (if present)
+- `references/**` (if present)
+- `scripts/**` (if present)
+- `assets/**` (if present)
 
 This keeps runtime skill directories clean and free of repository-only files.
+
+## Compatibility Baseline
+
+- Core contract is SKILL-first (`SKILL.md` is the single required artifact).
+- Platform adapter files are optional and isolated under `agents/`.
+- See `docs/compatibility/skills-matrix.md` for profile-specific paths and constraints.

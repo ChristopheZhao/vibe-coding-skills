@@ -104,6 +104,12 @@ if ! printf '%s' "$RETRIEVE_OUTPUT" | grep -q '"topic_id": "smoke-topic"'; then
   exit 1
 fi
 
+"$PYTHON_BIN" "$MEMORY_OPS" summarize --root "$TMP_ROOT" --topic-id smoke-topic --profile resume --mode incremental >/dev/null
+if [[ ! -f "$TMP_ROOT/docs/memory/summary/current.json" ]]; then
+  echo "error: summary JSON not generated" >&2
+  exit 1
+fi
+
 "$PYTHON_BIN" "$MEMORY_OPS" doctor --root "$TMP_ROOT" >/dev/null
 
 echo "layered-project-memory smoke passed: $TMP_ROOT"

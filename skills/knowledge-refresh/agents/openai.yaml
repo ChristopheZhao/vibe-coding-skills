@@ -1,0 +1,4 @@
+interface:
+  display_name: "Knowledge Refresh"
+  short_description: "Verify uncertain or time-sensitive technical claims with authoritative sources"
+  default_prompt: "Use $knowledge-refresh when users ask for source-backed verification, latest official guidance, or when a disputed technical claim needs external evidence before making a coding decision."

@@ -93,6 +93,68 @@
           "text": "User confirmed implementation completion"
         }
       ]
+    },
+    {
+      "id": "PLAN-20260307-001",
+      "title": "知识补充与新鲜度校验skill设计与实施规划",
+      "kind": "feature",
+      "status": "archived",
+      "priority": "P0",
+      "owner": "codex",
+      "file_path": "docs/plans/archive/2026-03/PLAN-20260307-001.md",
+      "confirmed_by_user": true,
+      "created_at": "2026-03-06T16:04:27Z",
+      "updated_at": "2026-03-07T01:56:07Z",
+      "archived_at": "2026-03-07T01:56:07Z",
+      "notes": [
+        {
+          "at": "2026-03-06T16:05:30Z",
+          "text": "Completed Chinese planning update for knowledge-refresh skill: scope, structure, scripts, and examples"
+        },
+        {
+          "at": "2026-03-06T16:10:12Z",
+          "text": "Started implementation for knowledge-refresh skill skeleton and core docs"
+        },
+        {
+          "at": "2026-03-06T16:13:34Z",
+          "text": "Implemented knowledge-refresh v1 (skeleton, docs, smoke) and passed structure/smoke checks"
+        },
+        {
+          "at": "2026-03-06T16:16:01Z",
+          "text": "User confirmed implementation completion for knowledge-refresh v1"
+        }
+      ]
+    },
+    {
+      "id": "PLAN-20260307-002",
+      "title": "skills跨平台兼容改造",
+      "kind": "feature",
+      "status": "archived",
+      "priority": "P0",
+      "owner": "codex",
+      "file_path": "docs/plans/archive/2026-03/PLAN-20260307-002.md",
+      "confirmed_by_user": true,
+      "created_at": "2026-03-07T13:36:25Z",
+      "updated_at": "2026-03-07T14:06:39Z",
+      "archived_at": "2026-03-07T14:06:39Z",
+      "notes": [
+        {
+          "at": "2026-03-07T13:36:33Z",
+          "text": "开始执行：先改仓库契约与结构校验，再改发布脚本与skill smoke"
+        },
+        {
+          "at": "2026-03-07T13:40:04Z",
+          "text": "完成P0-1~P0-5：SKILL-first契约、结构检查、发布profile扩展(copilot)、knowledge-refresh smoke解耦与回归验证通过，待用户确认"
+        },
+        {
+          "at": "2026-03-07T14:06:31Z",
+          "text": "已完成所有执行项与回归验证，等待用户确认"
+        },
+        {
+          "at": "2026-03-07T14:06:39Z",
+          "text": "用户已确认完成"
+        }
+      ]
     }
   ]
 }

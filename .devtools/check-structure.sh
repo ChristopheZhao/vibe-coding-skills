@@ -64,6 +64,7 @@ fi
 
 issues=0
 checked=0
+allowed_entries=(SKILL.md agents references scripts assets)
 
 while IFS= read -r -d '' skill_dir; do
   checked=$((checked + 1))
@@ -74,23 +75,19 @@ while IFS= read -r -d '' skill_dir; do
     issues=$((issues + 1))
   fi
 
-  for required_dir in agents references scripts; do
-    if [[ ! -d "$skill_dir/$required_dir" ]]; then
-      echo "error: $skill_name missing required directory: $required_dir/" >&2
-      issues=$((issues + 1))
-    fi
-  done
-
   while IFS= read -r -d '' entry; do
     base="$(basename "$entry")"
-    case "$base" in
-      SKILL.md|agents|references|scripts)
-        ;;
-      *)
-        echo "error: $skill_name contains non-standard top-level entry: $base" >&2
-        issues=$((issues + 1))
-        ;;
-    esac
+    allowed=0
+    for allowed_entry in "${allowed_entries[@]}"; do
+      if [[ "$base" == "$allowed_entry" ]]; then
+        allowed=1
+        break
+      fi
+    done
+    if [[ "$allowed" -ne 1 ]]; then
+      echo "error: $skill_name contains non-standard top-level entry: $base (allowed: ${allowed_entries[*]})" >&2
+      issues=$((issues + 1))
+    fi
   done < <(find "$skill_dir" -mindepth 1 -maxdepth 1 -print0)
 done < <(find "$SKILLS_DIR" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
 

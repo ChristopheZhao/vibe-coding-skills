@@ -32,3 +32,16 @@
   - capture succeeds without `plan_id`
   - `retrieve` can scope by `topic_id`
   - pack returns pointer fields without duplicating large source content
+
+## Case 6: Summary Incremental Compression
+- Input: summary exists, then new high-signal events are captured under the same scope.
+- Expected:
+  - `summarize --mode incremental` updates summary using only new events since the last anchor
+  - `last_event_seq` and `last_event_id` advance monotonically
+  - summary keeps pointer-first highlights and next-actions without creating independent facts
+
+## Case 7: Summary Rebuild Recovery
+- Input: stale/corrupted summary anchor (`last_event_id` missing in events).
+- Expected:
+  - `summarize --mode incremental` falls back to rebuild behavior
+  - regenerated summary remains consistent with current scoped memory
