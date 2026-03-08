@@ -19,6 +19,8 @@
 - 外部知识校验
 - 多智能体讨论引导
 
+许可证：[MIT](LICENSE)
+
 ## 仓库提供什么
 
 - 以 `SKILL.md` 为核心的仓库契约（`skills/<slug>/SKILL.md` 为必需项）。

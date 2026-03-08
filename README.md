@@ -19,6 +19,8 @@ This repository focuses on high-value guidance that improves coding outcomes:
 - external knowledge verification
 - multi-agent discussion setup
 
+License: [MIT](LICENSE)
+
 ## What This Repository Provides
 
 - A SKILL-first repository contract (`skills/<slug>/SKILL.md` is required).
