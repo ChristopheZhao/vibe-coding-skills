@@ -178,6 +178,11 @@ if [[ -n "$DELETE_FLAG" ]]; then
 fi
 
 rsync "${RSYNC_ARGS[@]}" \
+  --exclude='**/__pycache__/***' \
+  --exclude='**/*.pyc' \
+  --exclude='**/*.pyo' \
+  --exclude='**/.pytest_cache/***' \
+  --exclude='**/.mypy_cache/***' \
   --include='/SKILL.md' \
   --include='/agents/' \
   --include='/agents/***' \

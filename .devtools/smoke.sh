@@ -91,6 +91,44 @@ if [[ ! -f "$SKILL_ROOT/SKILL.md" ]]; then
   exit 1
 fi
 
+if ! "$PYTHON_BIN" - "$SKILL_ROOT/SKILL.md" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+match = re.match(r"^---\n(.*?)\n---\n", text, re.S)
+if not match:
+    print(f"error: SKILL.md missing YAML frontmatter: {path}", file=sys.stderr)
+    sys.exit(1)
+
+try:
+    import yaml
+except Exception as exc:
+    print(f"error: PyYAML required for frontmatter validation: {exc}", file=sys.stderr)
+    sys.exit(1)
+
+try:
+    data = yaml.safe_load(match.group(1))
+except Exception as exc:
+    print(f"error: invalid SKILL.md frontmatter YAML in {path}: {exc}", file=sys.stderr)
+    sys.exit(1)
+
+if not isinstance(data, dict):
+    print(f"error: frontmatter must be a mapping in {path}", file=sys.stderr)
+    sys.exit(1)
+
+for key in ("name", "description"):
+    value = data.get(key)
+    if not isinstance(value, str) or not value.strip():
+        print(f"error: missing or invalid frontmatter field '{key}' in {path}", file=sys.stderr)
+        sys.exit(1)
+PY
+then
+  exit 1
+fi
+
 SMOKE_SH="$SKILL_ROOT/scripts/smoke.sh"
 SMOKE_PY="$SKILL_ROOT/scripts/smoke.py"
 SMOKE_CMD=()

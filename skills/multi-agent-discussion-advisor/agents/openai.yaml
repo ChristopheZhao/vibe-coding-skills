@@ -1,0 +1,4 @@
+interface:
+  display_name: "Multi-Agent Discussion Advisor"
+  short_description: "Run real multi-agent discussion review for high-uncertainty coding decisions"
+  default_prompt: "Use $multi-agent-discussion-advisor for high-uncertainty discussion where cross-role synthesis is needed to converge on one方案. The skill should infer minimal sufficient roles and provide a sub-agent launch specification for the host coding agent to create real multi-agent review tasks. Explicit requests like '评估下当前项目的产品功能，技术架构设计方案' or '开多个agent评审后给结论' have highest priority. Do not use for execution planning or business runtime orchestration."

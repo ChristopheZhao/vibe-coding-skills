@@ -1,6 +1,6 @@
 ---
 name: experience-capture
-description: Capture reusable coding experience cards from key alignment and hard-problem resolution moments. Explicit user requests like "总结一下上面讨论的经验形成记录" should trigger this skill with high priority. Use when users ask to summarize lessons, preserve decision rules, or build reusable play patterns across projects. Do not use for verbatim transcript archival, routine progress logging, or replacing layered project memory.
+description: Capture reusable coding experience cards from key alignment and hard-problem resolution moments. Use when users ask to summarize lessons, preserve decision rules, or build reusable play patterns across tasks and projects. Do not use for verbatim transcript archival, routine progress logging, or replacing layered project memory.
 ---
 
 # Experience Capture
