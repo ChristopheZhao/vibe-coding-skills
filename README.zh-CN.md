@@ -4,7 +4,7 @@
   <tr>
     <td valign="middle">
       <h1>vibe-coding-skills</h1>
-      <p>面向 vibe coding 工作流的可复用、偏生产化的 skills 仓库。</p>
+      <p>一个面向 vibe coding agents 与工作流的可复用 skills 仓库。</p>
     </td>
     <td align="right" valign="middle" width="220">
       <img src="docs/assets/vibe-coding-skills-logo.png" alt="vibe-coding-skills logo" width="180" />
@@ -12,7 +12,7 @@
   </tr>
 </table>
 
-本仓库聚焦于能够稳定提升 AI coding 产出的高价值技能：
+本仓库提供一组可复用 skills，通过以下能力方向提升 AI coding 产出：
 - 规划与生命周期治理
 - 项目记忆连续性
 - 可复用经验沉淀
@@ -31,6 +31,9 @@
 ## 当前 Skills（v1）
 
 ![vibe-coding-skills current skills overview](docs/assets/vibe-coding-skills-banner.png)
+
+第一期的 5 个 skill，覆盖的是实际 vibe coding 过程中最高频的人机协作需求。
+它们对应了从计划制定、项目连续性保持，到讨论与外部知识校验，再到高价值经验沉淀的完整交互链路。
 
 | Skill | 核心价值 | 典型产出 | 关键特性 |
 | --- | --- | --- | --- |

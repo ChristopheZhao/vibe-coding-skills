@@ -4,7 +4,7 @@ English | [简体中文](README.zh-CN.md)
   <tr>
     <td valign="middle">
       <h1>vibe-coding-skills</h1>
-      <p>Reusable, production-oriented skills for vibe coding workflows.</p>
+      <p>A reusable skills library for vibe coding agents and workflows.</p>
     </td>
     <td align="right" valign="middle" width="220">
       <img src="docs/assets/vibe-coding-skills-logo.png" alt="vibe-coding-skills logo" width="180" />
@@ -12,7 +12,7 @@ English | [简体中文](README.zh-CN.md)
   </tr>
 </table>
 
-This repository focuses on high-value guidance that improves coding outcomes:
+This repository provides reusable skills that improve coding outcomes through:
 - planning and lifecycle governance
 - project memory continuity
 - reusable experience capture
@@ -31,6 +31,9 @@ License: [MIT](LICENSE)
 ## Current Skills (v1)
 
 ![vibe-coding-skills current skills overview](docs/assets/vibe-coding-skills-banner.png)
+
+These five v1 skills cover the highest-frequency needs in real vibe coding workflows.
+They map to the human-agent interaction chain from planning and project continuity, to discussion and external verification, and finally to reusable experience capture after hard alignment or problem resolution.
 
 | Skill | Primary Value | Typical Output | Key Characteristics |
 | --- | --- | --- | --- |
