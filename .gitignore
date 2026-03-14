@@ -2,3 +2,5 @@
 *.pyc
 *.pyo
 /tmp/
+
+docs/plans/
