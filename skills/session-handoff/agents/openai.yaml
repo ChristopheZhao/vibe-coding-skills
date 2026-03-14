@@ -1,0 +1,4 @@
+interface:
+  display_name: "Session Handoff"
+  short_description: "Offload current-session context into a next-window continuation pack"
+  default_prompt: "Use $session-handoff when users ask to整理当前 session, prepare a new window to continue the same unfinished task, or create a handoff/context-offload summary from current progress, blockers, plans, memory, and lessons. Do not use it for reusable experience capture, standalone plan updates, or full transcript archival."

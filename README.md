@@ -14,6 +14,7 @@ English | [简体中文](README.zh-CN.md)
 
 This repository provides reusable skills that improve coding outcomes through:
 - planning and lifecycle governance
+- session handoff and context offload
 - project memory continuity
 - reusable experience capture
 - external knowledge verification
@@ -28,20 +29,12 @@ License: [MIT](LICENSE)
 - Cross-tool packaging profiles for `codex`, `claude`, `cursor`, `gemini`, and `copilot`.
 - A growing skill library for real vibe coding scenarios.
 
-## Current Skills (v1)
+## Skill Catalog
 
 ![vibe-coding-skills current skills overview](docs/assets/vibe-coding-skills-banner.png)
 
-These five v1 skills cover the highest-frequency needs in real vibe coding workflows.
-They map to the human-agent interaction chain from planning and project continuity, to discussion and external verification, and finally to reusable experience capture after hard alignment or problem resolution.
-
-| Skill | Primary Value | Typical Output | Key Characteristics |
-| --- | --- | --- | --- |
-| `sdd-plan-maintainer` | Make complex coding work executable and governable | concrete plan + lifecycle status updates | module decomposition, milestone tracking, completion gates, plan archive/index sync |
-| `layered-project-memory` | Keep project continuity across interrupted sessions | layered memory records + focused context packs | L1/L2/L3 memory model, Git anchors, pointer-first evidence, summary derived from records |
-| `experience-capture` | Convert hard alignment/problem-solving moments into reusable knowledge | experience cards | decision rules, anti-patterns, review checklist, explicit boundary from project memory |
-| `knowledge-refresh` | Reduce stale assumptions with external verification | evidence-based claim verdict (`confirmed/revised/inconclusive`) | source priority, freshness-aware checks, authoritative reference-first workflow |
-| `multi-agent-discussion-advisor` | Improve discussion quality before execution starts | discussion advisory card + sub-agent launch briefs | minimal-sufficient role design, launch specification for host coding agent, advisory-only boundary |
+See [docs/skills/INDEX.md](docs/skills/INDEX.md) for the current public skill catalog, typical outputs, boundaries, and direct links to each `SKILL.md`.
+Each skill's source of truth remains `skills/<slug>/SKILL.md`.
 
 ## Repository Contract
 
@@ -181,7 +174,7 @@ Practical note:
 ## Milestones and Roadmap
 
 Current milestone:
-- v1 foundation shipped with 5 skills for core vibe coding scenarios.
+- v1 foundation shipped with 6 skills for core vibe coding scenarios.
 
 Next expansion focus:
 - Long-running workflow skills: support resumable execution guidance, checkpoint/handoff discipline, and low-loss context continuity for multi-session coding work.

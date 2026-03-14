@@ -14,6 +14,7 @@
 
 本仓库提供一组可复用 skills，通过以下能力方向提升 AI coding 产出：
 - 规划与生命周期治理
+- session 交接与 context offload
 - 项目记忆连续性
 - 可复用经验沉淀
 - 外部知识校验
@@ -28,20 +29,12 @@
 - 面向 `codex`、`claude`、`cursor`、`gemini`、`copilot` 的跨工具分发配置。
 - 一个持续扩展的、覆盖真实 vibe coding 场景的 skill 库。
 
-## 当前 Skills（v1）
+## Skills 目录
 
 ![vibe-coding-skills current skills overview](docs/assets/vibe-coding-skills-banner.png)
 
-第一期的 5 个 skill，覆盖的是实际 vibe coding 过程中最高频的人机协作需求。
-它们对应了从计划制定、项目连续性保持，到讨论与外部知识校验，再到高价值经验沉淀的完整交互链路。
-
-| Skill | 核心价值 | 典型产出 | 关键特性 |
-| --- | --- | --- | --- |
-| `sdd-plan-maintainer` | 让复杂编码任务变得可执行、可治理 | 具体计划 + 生命周期状态更新 | 模块拆解、里程碑跟踪、完成门禁、计划归档与索引同步 |
-| `layered-project-memory` | 保持中断会话后的项目连续性 | 分层记忆记录 + 聚焦上下文包 | L1/L2/L3 记忆模型、Git 锚点、指针优先证据、基于记录派生 summary |
-| `experience-capture` | 将高价值对齐与难题解决过程沉淀为可复用经验 | 经验卡片 | 决策规则、反模式、review checklist，与项目记忆严格分界 |
-| `knowledge-refresh` | 用外部证据降低过时知识带来的错误判断 | 基于证据的结论（`confirmed/revised/inconclusive`） | 来源优先级、时效性感知校验、权威来源优先工作流 |
-| `multi-agent-discussion-advisor` | 在执行前提升复杂讨论质量 | discussion advisory card + 子 agent 启动说明 | 最小充分角色设计、面向宿主 coding agent 的 launch specification、仅 advisory 不做业务编排 |
+当前公开的 skill 目录、典型产出、边界说明与各 `SKILL.md` 入口，见 [docs/skills/INDEX.zh-CN.md](docs/skills/INDEX.zh-CN.md)。
+每个 skill 的语义真相仍以 `skills/<slug>/SKILL.md` 为准。
 
 ## 仓库契约
 
@@ -181,7 +174,7 @@ Smoke 设计：
 ## 里程碑与 Roadmap
 
 当前里程碑：
-- v1 已完成，包含 5 个核心 vibe coding 场景 skills。
+- v1 已完成，包含 6 个核心 vibe coding 场景 skills。
 
 下一阶段扩展方向：
 - 长时运行类 skill：支持可恢复执行、checkpoint/handoff 纪律，以及多会话编码中的低损耗上下文连续性。
