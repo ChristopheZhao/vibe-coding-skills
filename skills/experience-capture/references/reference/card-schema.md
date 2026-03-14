@@ -69,5 +69,6 @@
 - `review_checklist` 至少 3 条。
 - `source_event_refs` 至少 1 条。
 - `source_event_refs` 建议使用 `MEM-EVT-*` 或 `相对路径#锚点`。
+- 对复杂多轮任务，优先引用 `docs/experience/sources/*.md#anchor` 中的 source retrospective note。
 - `doc_refs` 应使用 repo-relative 路径（避免绝对路径）。
 - 禁止只写“过程流水”，必须包含可复用规则。

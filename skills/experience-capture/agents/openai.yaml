@@ -1,4 +1,4 @@
 interface:
   display_name: "Experience Capture"
   short_description: "Capture reusable engineering lessons from key coding moments"
-  default_prompt: "Use $experience-capture when users explicitly ask to summarize lessons or form an experience record (e.g., '总结一下上面讨论的经验形成记录', '形成经验记录', '沉淀经验卡'), or when they ask to preserve decision/checklist patterns for future coding tasks."
+  default_prompt: "Use $experience-capture when users explicitly ask to summarize lessons or form an experience record (e.g., '总结一下上面讨论的经验形成记录', '形成经验记录', '沉淀经验卡'), or when they ask to preserve decision/checklist patterns for future coding tasks. Do not use it when the main request is next-window handoff or context-offload continuity."
