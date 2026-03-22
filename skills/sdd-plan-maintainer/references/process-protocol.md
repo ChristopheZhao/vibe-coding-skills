@@ -44,15 +44,17 @@ Return to default Codex behavior between milestones.
 - `awaiting_user_confirmation`: tests pass and waiting for user acceptance.
 - `completed`: implementation done, tests pass, user confirmed.
 - `blocked`: work paused by unresolved blocker.
+- `superseded`: plan direction was invalidated by newer diagnosis, newer evidence, or a successor plan; stop executing it and keep it as history or archive candidate.
 - `archived`: closed plan moved to archive path.
 
 ## 6. Transition Rules
 Allowed transitions:
-- `draft` -> `in_progress` or `blocked`
-- `in_progress` -> `testing`, `awaiting_user_confirmation`, or `blocked`
-- `testing` -> `in_progress`, `awaiting_user_confirmation`, `completed`, or `blocked`
-- `awaiting_user_confirmation` -> `completed`, `in_progress`, or `blocked`
-- `blocked` -> `in_progress`
+- `draft` -> `in_progress`, `blocked`, or `superseded`
+- `in_progress` -> `testing`, `awaiting_user_confirmation`, `blocked`, or `superseded`
+- `testing` -> `in_progress`, `awaiting_user_confirmation`, `completed`, `blocked`, or `superseded`
+- `awaiting_user_confirmation` -> `completed`, `in_progress`, `blocked`, or `superseded`
+- `blocked` -> `in_progress` or `superseded`
+- `superseded` -> `in_progress` (reopen only with new evidence)
 - `completed` -> `in_progress` (reopen only with new evidence)
 
 Never set `archived` through status update. Use archive operation only.
@@ -64,7 +66,7 @@ Set `completed` only when all are true:
 - User explicitly confirms result.
 
 Archive only when all are true:
-- Current status is `completed`.
+- Current status is `completed` or `superseded`.
 - User confirmation is present.
 - Plan file is moved from `docs/plans/active/` to `docs/plans/archive/YYYY-MM/`.
 

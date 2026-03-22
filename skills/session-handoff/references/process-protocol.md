@@ -30,14 +30,17 @@
   - Summarize what this session actually accomplished and what remains unresolved.
 - `Related Refs`
   - Group refs by `plans`, `memory`, `experience`, and `process/evidence`.
+  - When an older plan is no longer the current execution entrypoint, label it as `historical` or `reference-only` instead of presenting it as the active task definition.
 - `Subtask Snapshots`
   - For each subtask: goal, completed summary, remaining summary, blockers, next action, and evidence refs.
+  - If the session invalidated a prior plan direction, say so explicitly and point to the new diagnosis or code anchor.
 - `Avoid Repeat`
   - Keep only 1-3 high-signal lessons or anti-patterns.
 - `Next Window Boot`
   - State exactly what to read first and what the first action should be.
+  - If an older plan should not be continued by default, name it and say so directly.
 - `Source of Truth`
-  - State that plan, memory, and experience docs remain authoritative.
+  - State that plan lifecycle truth remains in `docs/plans/`, code facts remain in repository or Git evidence, and the handoff pack is only a continuation layer.
 
 ## 6. New-Window Consumption Order
 1. Read `Offload Reason` and `Overview`.

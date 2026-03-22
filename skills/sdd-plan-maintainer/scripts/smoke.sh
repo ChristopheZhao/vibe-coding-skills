@@ -91,11 +91,13 @@ fi
   --id PLAN-SMOKE-001 --title "Smoke Validation" --kind feature --priority P1 >/dev/null
 "$PYTHON_BIN" "$PLAN_OPS" status --root "$TMP_ROOT" \
   --id PLAN-SMOKE-001 --status in_progress --note "smoke start" >/dev/null
+"$PYTHON_BIN" "$PLAN_OPS" status --root "$TMP_ROOT" \
+  --id PLAN-SMOKE-001 --status superseded --note "Superseded by newer diagnosis during smoke" >/dev/null
 "$PYTHON_BIN" "$PLAN_OPS" doctor --root "$TMP_ROOT" >/dev/null
 "$PYTHON_BIN" "$PLAN_OPS" dashboard --root "$TMP_ROOT" >/dev/null
 
 PLAN_FILE="$TMP_ROOT/docs/plans/active/PLAN-SMOKE-001.md"
-sed -i 's/^- Status: in_progress$/- Status: completed/' "$PLAN_FILE"
+sed -i 's/^- Status: superseded$/- Status: completed/' "$PLAN_FILE"
 
 if "$PYTHON_BIN" "$PLAN_OPS" doctor --root "$TMP_ROOT" >/dev/null; then
   echo "error: expected doctor to fail on doc status drift" >&2

@@ -104,6 +104,22 @@ Smoke 设计：
 - `.devtools/smoke.sh` 只是调度层。
 - 每个 skill 自己维护 `skills/<skill>/scripts/smoke.sh`（或 `smoke.py`）实现。
 
+当 skill 提供功能级 CLI 回归测试时，可运行：
+
+```bash
+./.devtools/test.sh --skill-dir skills/sdd-plan-maintainer
+```
+
+运行当前仓库里所有可用的 skill 回归测试：
+
+```bash
+./.devtools/test.sh --all
+```
+
+Test 设计：
+- `.devtools/test.sh` 会优先调度 `scripts/test.sh`、`scripts/test.py`，否则回退到 `scripts/tests/`。
+- `smoke` 用于契约/结构检查，`test` 用于行为回归验证。
+
 ## 发布
 
 默认行为：

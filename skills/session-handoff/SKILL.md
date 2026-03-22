@@ -81,6 +81,7 @@ No business runtime script is required in MVP.
 - Do not auto-refresh or mutate plan, memory, experience, or process docs in MVP.
 - Keep references repo-relative whenever possible.
 - Do not copy large logs or long document excerpts; summarize and point.
+- If the current session invalidates an older plan, mark that plan as historical or reference-only in the pack and point to the new diagnostic entry, but do not mutate plan lifecycle state in this skill.
 
 ## Resource Map
 - Read `references/positioning-boundary.md` for scope and layer split.

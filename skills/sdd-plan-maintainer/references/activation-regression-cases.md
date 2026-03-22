@@ -28,7 +28,15 @@ Expected:
 - Update lifecycle status with note.
 - Keep index and artifact state consistent.
 
-4) Completion plus archive governance
+4) Invalidated plan governance update
+Prompt:
+- `这个计划方向错了，帮我把 PLAN-20260214-003 标记成 superseded，并写清楚替代判断。`
+Expected:
+- Activate `sdd-plan-maintainer`.
+- Update lifecycle status to `superseded` with a note that records why the plan stopped and what replaced it.
+- Keep the old plan available as history without letting it remain an active execution target.
+
+5) Completion plus archive governance
 Prompt:
 - `我这边已经确认了，帮我把 PLAN-20260214-003 归档。`
 Expected:
@@ -75,6 +83,7 @@ If any signal appears, tighten or rebalance activation wording:
 - Skill stays active across full implementation instead of milestone governance.
 - User reports unexpected plan or index writes.
 - Execution handoff notes start carrying lifecycle status fields.
+- Invalidated plans keep showing up as active execution targets because they were not moved out of open status semantics.
 
 ## Maintenance Rule
 

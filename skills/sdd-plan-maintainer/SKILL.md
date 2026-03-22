@@ -63,8 +63,9 @@ If script is skipped, still follow `references/process-protocol.md`.
 
 ## Hard Gates
 - `completed` requires implementation done, tests passed, and user confirmation.
-- `archived` requires user confirmation and an already completed plan.
+- `archived` requires user confirmation and an already closed plan (`completed` or `superseded`).
 - `blocked` must include a concrete blocker note and next action.
+- `superseded` requires a concrete note explaining why the plan direction was invalidated and what should be used instead.
 
 ## Resource Map
 - Read `references/process-protocol.md` for activation and boundary policy.

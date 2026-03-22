@@ -5,7 +5,7 @@ This guide adds lightweight operational clarity without changing the existing li
 ## 1. What Can Be Read from `docs/plans/`
 
 - `docs/plans/PLAN_INDEX.json` is the machine-readable source for current lifecycle state.
-- `docs/plans/active/` shows open plans.
+- `docs/plans/active/` shows non-archived plans; some may be historical `superseded` plans pending optional archive.
 - `docs/plans/archive/YYYY-MM/` shows closed plans.
 
 For quick project-level status, read the index first, then open specific plan files for details.

@@ -19,16 +19,18 @@ VALID_STATUSES: Set[str] = {
     "completed",
     "archived",
     "blocked",
+    "superseded",
 }
 
 MANAGED_STATUSES: Set[str] = VALID_STATUSES - {"archived"}
 
 ALLOWED_TRANSITIONS: Dict[str, Set[str]] = {
-    "draft": {"in_progress", "blocked"},
-    "in_progress": {"testing", "awaiting_user_confirmation", "blocked"},
-    "testing": {"in_progress", "awaiting_user_confirmation", "completed", "blocked"},
-    "awaiting_user_confirmation": {"completed", "in_progress", "blocked"},
-    "blocked": {"in_progress"},
+    "draft": {"in_progress", "blocked", "superseded"},
+    "in_progress": {"testing", "awaiting_user_confirmation", "blocked", "superseded"},
+    "testing": {"in_progress", "awaiting_user_confirmation", "completed", "blocked", "superseded"},
+    "awaiting_user_confirmation": {"completed", "in_progress", "blocked", "superseded"},
+    "blocked": {"in_progress", "superseded"},
+    "superseded": {"in_progress"},
     "completed": {"in_progress"},
     "archived": set(),
 }
@@ -40,6 +42,7 @@ STATUS_ORDER: List[str] = [
     "awaiting_user_confirmation",
     "blocked",
     "completed",
+    "superseded",
     "archived",
 ]
 
@@ -513,8 +516,8 @@ def cmd_status(args: argparse.Namespace) -> int:
         print("error: archived plans are immutable; reopen from archive manually if needed", file=sys.stderr)
         return 1
 
-    if args.status == "blocked" and not args.note:
-        print("error: blocked requires --note with blocker details", file=sys.stderr)
+    if args.status in {"blocked", "superseded"} and not args.note:
+        print(f"error: {args.status} requires --note with blocker or invalidation details", file=sys.stderr)
         return 1
 
     if args.confirmed_by_user and args.status != "completed":
@@ -543,6 +546,8 @@ def cmd_status(args: argparse.Namespace) -> int:
 
     if args.status == "completed":
         item["confirmed_by_user"] = True
+    elif args.status == "superseded":
+        item["confirmed_by_user"] = False
 
     item["updated_at"] = ts
 
@@ -566,8 +571,8 @@ def cmd_archive(args: argparse.Namespace) -> int:
         print(f"error: plan id not found: {args.id}", file=sys.stderr)
         return 1
 
-    if item.get("status") != "completed":
-        print("error: archive requires current status completed", file=sys.stderr)
+    if item.get("status") not in {"completed", "superseded"}:
+        print("error: archive requires current status completed or superseded", file=sys.stderr)
         return 1
 
     if not args.confirmed_by_user and not item.get("confirmed_by_user"):
@@ -747,13 +752,16 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
         if status in counts:
             counts[status] += 1
 
-    active_plans = [p for p in plans if str(p.get("status")) != "archived"]
+    active_plans = [p for p in plans if str(p.get("status")) not in {"archived", "superseded"}]
     active_plans.sort(key=lambda p: str(p.get("updated_at", "")), reverse=True)
 
     attention_plans = [
         p for p in plans if str(p.get("status")) in {"awaiting_user_confirmation", "blocked"}
     ]
     attention_plans.sort(key=lambda p: str(p.get("updated_at", "")), reverse=True)
+
+    superseded_plans = [p for p in plans if str(p.get("status")) == "superseded"]
+    superseded_plans.sort(key=lambda p: str(p.get("updated_at", "")), reverse=True)
 
     archived_plans = [p for p in plans if str(p.get("status")) == "archived"]
     archived_plans.sort(
@@ -816,6 +824,21 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
         lines.extend(render_markdown_table(["Plan ID", "Status", "Updated At", "Latest Note"], rows))
     else:
         lines.append("_No blocked or awaiting-user-confirmation plans._")
+    lines.append("")
+    lines.append("## Superseded Plans")
+    lines.append("")
+    if superseded_plans:
+        rows = [
+            [
+                p.get("id", ""),
+                p.get("updated_at", ""),
+                truncate_text(str((p.get("notes") or [{}])[-1].get("text", "") or "-"), 96),
+            ]
+            for p in superseded_plans[:10]
+        ]
+        lines.extend(render_markdown_table(["Plan ID", "Updated At", "Latest Note"], rows))
+    else:
+        lines.append("_No superseded plans._")
     lines.append("")
     lines.append("## Recent Archives")
     lines.append("")

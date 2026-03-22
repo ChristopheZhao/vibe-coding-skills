@@ -31,6 +31,7 @@ uv run --active python scripts/plan_ops.py create --root . --id PLAN-20260214-00
 uv run --active python scripts/plan_ops.py status --root . --id PLAN-20260214-001 --status in_progress --note "Started implementation"
 uv run --active python scripts/plan_ops.py status --root . --id PLAN-20260214-001 --status testing --note "Core tests running"
 uv run --active python scripts/plan_ops.py status --root . --id PLAN-20260214-001 --status awaiting_user_confirmation --note "All tests passed"
+uv run --active python scripts/plan_ops.py status --root . --id PLAN-20260214-001 --status superseded --note "Superseded by newer diagnosis in SHO-20260321-0001; stop executing this checklist"
 ```
 
 ## 4. Complete with User Confirmation
@@ -42,6 +43,8 @@ uv run --active python scripts/plan_ops.py status --root . --id PLAN-20260214-00
 ```bash
 uv run --active python scripts/plan_ops.py archive --root . --id PLAN-20260214-001 --confirmed-by-user
 ```
+
+`archive` is for already closed plans. In the current lifecycle, that means `completed` or `superseded`.
 
 ## 6. Query Progress
 ```bash
@@ -81,6 +84,7 @@ Required constraints:
 - Keep folder layout and index location unchanged.
 - Keep status values in the defined lifecycle.
 - Do not mark completed without test evidence and user confirmation.
+- Do not mark blocked or superseded without a note that explains why execution paused or stopped.
 - Do not archive without moving file path and updating index path together.
 - Treat `docs/plans/PLAN_INDEX.json` as status source of truth.
 

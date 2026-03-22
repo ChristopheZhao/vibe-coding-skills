@@ -104,6 +104,22 @@ Smoke design:
 - `.devtools/smoke.sh` is a dispatcher.
 - Each skill owns its own smoke entry under `skills/<skill>/scripts/smoke.sh` (or `smoke.py`).
 
+Run skill regression tests when a skill provides functional CLI tests:
+
+```bash
+./.devtools/test.sh --skill-dir skills/sdd-plan-maintainer
+```
+
+Run all available skill regression tests:
+
+```bash
+./.devtools/test.sh --all
+```
+
+Test design:
+- `.devtools/test.sh` dispatches to `scripts/test.sh`, `scripts/test.py`, or `scripts/tests/` when present.
+- Use smoke for contract or structure checks; use tests for behavior regressions.
+
 ## Release
 
 Default behavior:

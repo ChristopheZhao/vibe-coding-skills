@@ -16,3 +16,12 @@
 - The pack must not replace plan, memory, or experience truth.
 - The pack may reference related docs, but must not depend on a specific skill name being present.
 - MVP must stay explicit-trigger only.
+
+## Boundary Regression: Invalidated Prior Plan
+- Scenario:
+  - An unfinished older plan still exists, but the current session has proved its root-cause path is wrong or no longer the current execution direction.
+- Expected:
+  - The pack marks the older plan as `historical` or `reference-only`.
+  - `Next Window Boot` tells the next window not to continue the older checklist by default.
+  - `Source of Truth` distinguishes plan lifecycle truth from current code facts and diagnostic entrypoints.
+  - The pack may recommend a successor plan or governance follow-up, but it must not invent lifecycle status on its own.

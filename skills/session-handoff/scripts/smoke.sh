@@ -80,6 +80,7 @@ required_files=(
   "$SKILL_ROOT/references/regression-cases.md"
   "$SKILL_ROOT/references/examples/README.md"
   "$SKILL_ROOT/references/examples/multi-subtask-session.md"
+  "$SKILL_ROOT/references/examples/superseded-plan-session.md"
   "$SKILL_ROOT/references/examples/non-example.md"
 )
 
