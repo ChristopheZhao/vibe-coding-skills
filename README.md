@@ -14,6 +14,7 @@ English | [简体中文](README.zh-CN.md)
 
 This repository provides reusable skills that improve coding outcomes through:
 - planning and lifecycle governance
+- checkpoint validation and bounded remediation gates
 - session handoff and context offload
 - project memory continuity
 - reusable experience capture
@@ -190,7 +191,7 @@ Practical note:
 ## Milestones and Roadmap
 
 Current milestone:
-- v1 foundation shipped with 6 skills for core vibe coding scenarios.
+- v1 foundation shipped with 7 skills for core vibe coding scenarios.
 
 Next expansion focus:
 - Long-running workflow skills: support resumable execution guidance, checkpoint/handoff discipline, and low-loss context continuity for multi-session coding work.

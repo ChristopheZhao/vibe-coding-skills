@@ -1,0 +1,4 @@
+interface:
+  display_name: "Checkpoint Gatekeeper"
+  short_description: "Gate stage transitions with checkpoint validation and bounded auto-fix"
+  default_prompt: "Use $checkpoint-gatekeeper when multi-phase work should not proceed to the next stage without checkpoint validation, bounded auto-remediation, and explicit escalation for risky or ambiguous failures."

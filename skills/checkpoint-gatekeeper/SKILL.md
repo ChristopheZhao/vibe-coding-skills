@@ -1,0 +1,78 @@
+---
+name: checkpoint-gatekeeper
+description: Enforce checkpoint-level verification before multi-phase work advances, using bounded auto-remediation and explicit escalation when failures are ambiguous or risky. Use when complex work should not proceed to the next stage without validating the current stage. Do not use for plan lifecycle ownership, session handoff, or full long-running orchestration.
+---
+
+# Checkpoint Gatekeeper
+
+## Purpose
+Use this skill to stop unverified stage output from leaking into later stages of complex work.
+The skill provides a checkpoint-scoped verification and remediation loop: validate, optionally auto-fix within the current checkpoint, revalidate, then emit an explicit gate verdict.
+
+## Activation Cues
+Activate when any condition is true:
+- The work is split into phases or checkpoints and the next phase should not start without verification.
+- The user explicitly asks for checkpoint gating, stage validation, or a "do not proceed until verified" rule.
+- A complex refactor or migration has high risk of error propagation across phases.
+
+Do not activate when any condition is true:
+- The task is a one-off tiny edit with no phase boundary or checkpoint concept.
+- The request is only to create or maintain a plan lifecycle state.
+- The task needs full long-running orchestration across the entire project rather than one checkpoint-scoped gate loop.
+
+## Scope Limit
+This skill does:
+- checkpoint-scoped validation and bounded auto-remediation
+- checklist and gate artifact generation under `docs/checkpoints/`
+- verdict emission: `pending`, `pass`, `auto_fixed_pass`, `fail`, `needs_user_confirmation`, `waived`
+
+This skill does not:
+- own `docs/plans/PLAN_INDEX.json` lifecycle state
+- archive, complete, or supersede plans
+- perform silent waivers or silent gate-standard changes
+- become a general long-running Ralph-style task loop in MVP
+
+## Ownership Boundary
+- `sdd-plan-maintainer` owns plan definition, lifecycle governance, and `docs/plans/PLAN_INDEX.json`.
+- `checkpoint-gatekeeper` owns checkpoint verification artifacts and verdicts under `docs/checkpoints/`.
+- `session-handoff` owns next-window continuation context, not gate verdicts.
+
+Boundary rule:
+- Gate verdicts are not plan lifecycle statuses.
+- This skill may read plan checkpoints for linkage, but it must not mutate plan lifecycle state.
+
+## Script Decision
+Use `scripts/gate_ops.py` for deterministic artifact creation, validation loops, verdict writing, and waiver handling.
+Use `scripts/smoke.sh` for structure and minimal CLI-contract checks.
+
+## Workflow Contract
+1. Confirm the target `plan_id` and `checkpoint`.
+2. Create or refresh checklist and gate artifacts under `docs/checkpoints/<PLAN-ID>/`.
+3. Run validation commands for the checkpoint.
+4. If validation fails and the checklist allows it, run bounded current-checkpoint remediation commands, then revalidate.
+5. Emit one verdict:
+   - `pass`
+   - `auto_fixed_pass`
+   - `fail`
+   - `needs_user_confirmation`
+   - `waived`
+6. Escalate only when the result is ambiguous, risky, or would require a scope/standard change.
+
+## Hard Rules
+- Never mutate `docs/plans/PLAN_INDEX.json`.
+- Never silently change checkpoint requirements or pass criteria.
+- Never silently waive a checkpoint.
+- Keep auto-remediation bounded to the current checkpoint and explicit remediation commands.
+- If high-risk or ambiguous signals appear, emit `needs_user_confirmation` instead of forcing a pass.
+
+## Resource Map
+- Read `references/positioning-boundary.md` for scope and layer split.
+- Read `references/trigger-rules.md` for trigger and non-trigger rules.
+- Read `references/process-protocol.md` for the checkpoint verification loop.
+- Read `references/artifact-contract.md` for `docs/checkpoints/<PLAN-ID>/` artifact layout and checklist marker format.
+- Read `references/remediation-policy.md` for auto-fix boundaries and escalation conditions.
+- Read `references/output-contract.md` for verdict semantics and gate artifact fields.
+- Read `references/regression-cases.md` for trigger-boundary and no-overlap regression cases.
+- Read `references/examples/README.md` for positive and negative examples.
+- Use `scripts/gate_ops.py` for deterministic gate operations.
+- Use `scripts/smoke.sh` for deterministic smoke checks.
