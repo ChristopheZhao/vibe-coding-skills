@@ -1,0 +1,4 @@
+interface:
+  display_name: "Checkpoint Commit Advisor"
+  short_description: "Propose checkpoint commit layers before complex work continues on a dirty tree"
+  default_prompt: "Use $checkpoint-commit-advisor when a dirty worktree may need a governance anchor, known-bad snapshot, or other checkpoint commit layering before a new phase, new plan, or new window begins."
