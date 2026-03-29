@@ -1,6 +1,6 @@
 ---
 name: checkpoint-gatekeeper
-description: Enforce checkpoint-level verification before multi-phase work advances, using bounded auto-remediation and explicit escalation when failures are ambiguous or risky. Use when complex work should not proceed to the next stage without validating the current stage. Do not use for plan lifecycle ownership, session handoff, or full long-running orchestration.
+description: Enforce checkpoint-level verification before multi-phase work advances, using bounded auto-remediation and explicit escalation when failures are ambiguous or risky. Use when complex work should not proceed to the next stage without validating the current stage, including acceptance-oriented checkpoint profiles that still stay under checkpoint verdict ownership. Do not use for plan lifecycle ownership, session handoff, or full long-running orchestration.
 ---
 
 # Checkpoint Gatekeeper
@@ -14,6 +14,7 @@ Activate when any condition is true:
 - The work is split into phases or checkpoints and the next phase should not start without verification.
 - The user explicitly asks for checkpoint gating, stage validation, or a "do not proceed until verified" rule.
 - A complex refactor or migration has high risk of error propagation across phases.
+- The user wants a stage or final acceptance check that should stay under checkpoint verdict ownership.
 
 Do not activate when any condition is true:
 - The task is a one-off tiny edit with no phase boundary or checkpoint concept.
@@ -24,6 +25,7 @@ Do not activate when any condition is true:
 This skill does:
 - checkpoint-scoped validation and bounded auto-remediation
 - checklist and gate artifact generation under `docs/checkpoints/`
+- acceptance-oriented checkpoint profiles that assess semantic completion while staying under checkpoint ownership
 - verdict emission: `pending`, `pass`, `auto_fixed_pass`, `fail`, `needs_user_confirmation`, `waived`
 
 This skill does not:
@@ -47,16 +49,17 @@ Use `scripts/smoke.sh` for structure and minimal CLI-contract checks.
 
 ## Workflow Contract
 1. Confirm the target `plan_id` and `checkpoint`.
-2. Create or refresh checklist and gate artifacts under `docs/checkpoints/<PLAN-ID>/`.
-3. Run validation commands for the checkpoint.
-4. If validation fails and the checklist allows it, run bounded current-checkpoint remediation commands, then revalidate.
-5. Emit one verdict:
+2. Confirm whether the checkpoint uses the default validation profile or an `acceptance` profile.
+3. Create or refresh checklist and gate artifacts under `docs/checkpoints/<PLAN-ID>/`.
+4. Run validation commands for the checkpoint.
+5. If validation fails and the checklist allows it, run bounded current-checkpoint remediation commands, then revalidate.
+6. Emit one verdict:
    - `pass`
    - `auto_fixed_pass`
    - `fail`
    - `needs_user_confirmation`
    - `waived`
-6. Escalate only when the result is ambiguous, risky, or would require a scope/standard change.
+7. Escalate only when the result is ambiguous, risky, or would require a scope/standard change.
 
 ## Hard Rules
 - Never mutate `docs/plans/PLAN_INDEX.json`.
@@ -64,6 +67,7 @@ Use `scripts/smoke.sh` for structure and minimal CLI-contract checks.
 - Never silently waive a checkpoint.
 - Keep auto-remediation bounded to the current checkpoint and explicit remediation commands.
 - If high-risk or ambiguous signals appear, emit `needs_user_confirmation` instead of forcing a pass.
+- `acceptance` profile must remain a checkpoint profile, not a new lifecycle or verdict owner.
 
 ## Resource Map
 - Read `references/positioning-boundary.md` for scope and layer split.

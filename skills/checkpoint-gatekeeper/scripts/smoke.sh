@@ -71,6 +71,7 @@ required_files=(
   "$SKILL_ROOT/references/examples/README.md"
   "$SKILL_ROOT/references/examples/basic-pass.md"
   "$SKILL_ROOT/references/examples/auto-fix-pass.md"
+  "$SKILL_ROOT/references/examples/acceptance-pass.md"
   "$SKILL_ROOT/references/examples/non-example.md"
   "$SKILL_ROOT/scripts/gate_ops.py"
 )
@@ -138,6 +139,47 @@ fi
 
 if [[ ! -f "$TMP_DIR/docs/checkpoints/PLAN-T-001/CHK-A-gate.json" ]]; then
   echo "error: gate artifact missing" >&2
+  exit 1
+fi
+
+"$PYTHON_BIN" "$SKILL_ROOT/scripts/gate_ops.py" --root "$TMP_DIR" init \
+  --id PLAN-T-001 \
+  --checkpoint CHK-B \
+  --title "Checkpoint B" \
+  --profile acceptance \
+  --acceptance-target "semantic closure for sprint B" \
+  --required-evidence "smoke passed" \
+  --required-evidence "contract gaps empty" \
+  --validation-command "true" >/dev/null
+
+"$PYTHON_BIN" "$SKILL_ROOT/scripts/gate_ops.py" --root "$TMP_DIR" check \
+  --id PLAN-T-001 \
+  --checkpoint CHK-B >/dev/null
+
+ACCEPTANCE_STATUS="$("$PYTHON_BIN" "$SKILL_ROOT/scripts/gate_ops.py" --root "$TMP_DIR" status --id PLAN-T-001 --checkpoint CHK-B --json)"
+
+if [[ "$ACCEPTANCE_STATUS" != *'"profile": "acceptance"'* ]]; then
+  echo "error: acceptance profile missing from gate JSON" >&2
+  exit 1
+fi
+
+if [[ "$ACCEPTANCE_STATUS" != *'"acceptance_target": "semantic closure for sprint B"'* ]]; then
+  echo "error: acceptance target missing from gate JSON" >&2
+  exit 1
+fi
+
+if [[ "$ACCEPTANCE_STATUS" != *'"required_evidence": ['* ]]; then
+  echo "error: required evidence missing from gate JSON" >&2
+  exit 1
+fi
+
+if [[ "$ACCEPTANCE_STATUS" != *'"acceptance_gaps": []'* ]]; then
+  echo "error: acceptance gaps should be empty for passing acceptance smoke" >&2
+  exit 1
+fi
+
+if ! grep -q 'acceptance' "$SKILL_ROOT/SKILL.md" "$SKILL_ROOT/references/output-contract.md"; then
+  echo "error: acceptance profile guidance missing" >&2
   exit 1
 fi
 

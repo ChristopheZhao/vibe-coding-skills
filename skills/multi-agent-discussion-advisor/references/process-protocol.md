@@ -2,12 +2,18 @@
 
 ## Step 1: Problem Frame
 - Clarify objective, constraints, unknowns, and decision deadline.
+- Classify whether the mode is `standard-discussion` or `preflight-review`.
 - Output: `context_frame`.
 
 ## Step 2: Collaboration Necessity Check
 - Determine whether single-role analysis is enough.
 - If not enough, identify missing perspectives.
 - Output: `collaboration_need`.
+
+## Step 2A: Preflight Review Focus (Optional)
+- Only for `preflight-review` mode.
+- Review plan assumptions, scope boundary, owner boundary, and evaluator readiness.
+- Output: `preflight_review`.
 
 ## Step 3: Pattern and Role Selection
 - Match the signal profile to a collaboration pattern.

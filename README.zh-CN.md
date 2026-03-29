@@ -192,7 +192,7 @@ Test 设计：
 ## 里程碑与 Roadmap
 
 当前里程碑：
-- v1 已完成，包含 8 个核心 vibe coding 场景 skills。
+- v1 基座加 phase-1 harness 扩展已完成，当前包含 10 个核心 vibe coding 场景 skills。
 
 下一阶段扩展方向：
 - 长时运行类 skill：支持可恢复执行、checkpoint/handoff 纪律，以及多会话编码中的低损耗上下文连续性。

@@ -28,6 +28,8 @@ DEFAULT_USER_CONFIRMATION_TRIGGERS = [
     "SCOPE_CHANGE_REQUIRED",
 ]
 
+VALID_PROFILES = {"default", "acceptance"}
+
 NON_PASS_EXIT_CODES = {
     "pending": 4,
     "fail": 2,
@@ -106,13 +108,33 @@ def find_plan(root: Path, plan_id: str) -> dict[str, Any]:
     fail(f"plan not found in PLAN_INDEX.json: {plan_id}")
 
 
+def normalize_profile(value: Any) -> str:
+    profile = str(value or "default")
+    if profile not in VALID_PROFILES:
+        fail(f"invalid profile: {profile}")
+    return profile
+
+
+def normalize_acceptance_fields(spec: dict[str, Any]) -> dict[str, Any]:
+    profile = normalize_profile(spec.get("profile"))
+    spec["profile"] = profile
+    if profile == "acceptance":
+        spec["acceptance_target"] = str(spec.get("acceptance_target") or "")
+        spec["required_evidence"] = [str(item) for item in (spec.get("required_evidence") or [])]
+    else:
+        spec.pop("acceptance_target", None)
+        spec.pop("required_evidence", None)
+    return spec
+
+
 def default_spec(args: argparse.Namespace) -> dict[str, Any]:
     auto_fix_commands = list(args.auto_fix_command or [])
     allow_auto_fix = args.allow_auto_fix or bool(auto_fix_commands)
-    return {
+    spec = {
         "plan_id": args.id,
         "checkpoint": checkpoint_slug(args.checkpoint),
         "title": args.title or checkpoint_slug(args.checkpoint),
+        "profile": normalize_profile(args.profile),
         "allow_auto_fix": allow_auto_fix,
         "max_auto_fix_rounds": args.max_auto_fix_rounds,
         "validation_commands": list(args.validation_command or []),
@@ -121,24 +143,44 @@ def default_spec(args: argparse.Namespace) -> dict[str, Any]:
             args.user_confirmation_trigger or DEFAULT_USER_CONFIRMATION_TRIGGERS
         ),
     }
+    if spec["profile"] == "acceptance":
+        spec["acceptance_target"] = str(args.acceptance_target or "")
+        spec["required_evidence"] = list(args.required_evidence or [])
+    return normalize_acceptance_fields(spec)
 
 
 def render_checklist(spec: dict[str, Any]) -> str:
+    spec = normalize_acceptance_fields(dict(spec))
     validation_lines = spec["validation_commands"] or ["_Add validation commands before running gate check_"]
     auto_fix_lines = spec["auto_fix_commands"] or ["_No auto-fix commands configured_"]
     validation_md = "\n".join(f"- `{line}`" if not line.startswith("_") else f"- {line}" for line in validation_lines)
     auto_fix_md = "\n".join(f"- `{line}`" if not line.startswith("_") else f"- {line}" for line in auto_fix_lines)
     trigger_md = "\n".join(f"- `{line}`" for line in spec["user_confirmation_triggers"])
+    acceptance_target = spec.get("acceptance_target", "_Not configured_")
+    required_evidence_lines = spec.get("required_evidence") or ["_No required evidence declared_"]
+    required_evidence_md = "\n".join(
+        f"- `{line}`" if not line.startswith("_") else f"- {line}" for line in required_evidence_lines
+    )
     spec_block = json.dumps(spec, indent=2, ensure_ascii=True)
+    acceptance_block = ""
+    if spec["profile"] == "acceptance":
+        acceptance_block = (
+            "## Acceptance Contract\n"
+            f"- Acceptance Target: `{acceptance_target}`\n\n"
+            "## Required Evidence\n"
+            f"{required_evidence_md}\n\n"
+        )
     return (
         f"# Checklist: {spec['title']}\n"
         f"- Linked Plan: `{spec['plan_id']}`\n"
         f"- Checkpoint: `{spec['checkpoint']}`\n"
+        f"- Profile: `{spec['profile']}`\n"
         f"- Auto Fix Enabled: `{str(spec['allow_auto_fix']).lower()}`\n"
         f"- Max Auto Fix Rounds: `{spec['max_auto_fix_rounds']}`\n\n"
         f"<!-- checkpoint-gatekeeper:spec\n{spec_block}\n-->\n\n"
         "## Validation Commands\n"
         f"{validation_md}\n\n"
+        f"{acceptance_block}"
         "## Auto-Fix Commands\n"
         f"{auto_fix_md}\n\n"
         "## User Confirmation Triggers\n"
@@ -162,14 +204,16 @@ def parse_checklist_spec(path: Path) -> dict[str, Any]:
         fail(f"invalid checklist spec json in {path}: {exc}")
     if not isinstance(spec, dict):
         fail(f"invalid checklist spec payload in {path}")
-    return spec
+    return normalize_acceptance_fields(spec)
 
 
 def default_gate_payload(root: Path, spec: dict[str, Any]) -> dict[str, Any]:
-    return {
+    spec = normalize_acceptance_fields(dict(spec))
+    payload = {
         "plan_id": spec["plan_id"],
         "checkpoint": spec["checkpoint"],
         "title": spec["title"],
+        "profile": spec["profile"],
         "verdict": "pending",
         "summary": "Checkpoint artifacts initialized; gate check has not run yet.",
         "updated_at": utc_now(),
@@ -177,16 +221,50 @@ def default_gate_payload(root: Path, spec: dict[str, Any]) -> dict[str, Any]:
         "attempts": [],
         "waiver": None,
     }
+    if spec["profile"] == "acceptance":
+        payload["acceptance_target"] = spec.get("acceptance_target", "")
+        payload["acceptance_gaps"] = []
+        payload["required_evidence"] = list(spec.get("required_evidence") or [])
+    return payload
 
 
 def load_gate_or_default(root: Path, spec: dict[str, Any]) -> dict[str, Any]:
+    spec = normalize_acceptance_fields(dict(spec))
     path = gate_path(root, spec["plan_id"], spec["checkpoint"])
     if path.exists():
         payload = load_json(path)
         if not isinstance(payload, dict):
             fail(f"invalid gate payload in {path}")
+        payload.setdefault("profile", spec["profile"])
+        if spec["profile"] == "acceptance":
+            payload.setdefault("acceptance_target", spec.get("acceptance_target", ""))
+            payload.setdefault("acceptance_gaps", [])
+            payload.setdefault("required_evidence", list(spec.get("required_evidence") or []))
         return payload
     return default_gate_payload(root, spec)
+
+
+def acceptance_gaps_for(spec: dict[str, Any], verdict: str) -> list[str]:
+    if normalize_profile(spec.get("profile")) != "acceptance":
+        return []
+    gaps: list[str] = []
+    if not str(spec.get("acceptance_target") or "").strip():
+        gaps.append("Missing acceptance target.")
+    if not list(spec.get("required_evidence") or []):
+        gaps.append("Missing required evidence list.")
+    if verdict not in {"pass", "auto_fixed_pass", "waived"}:
+        gaps.append("Semantic acceptance is not yet satisfied.")
+    return gaps
+
+
+def acceptance_summary_for(spec: dict[str, Any], verdict: str, summary: str) -> str:
+    if normalize_profile(spec.get("profile")) != "acceptance":
+        return summary
+    gaps = acceptance_gaps_for(spec, verdict)
+    if gaps:
+        return f"{summary} Acceptance gaps: {' '.join(gaps)}"
+    target = str(spec.get("acceptance_target") or "acceptance target").strip()
+    return f"{summary} Acceptance target satisfied: {target}."
 
 
 def run_shell(command: str, root: Path) -> dict[str, Any]:
@@ -353,9 +431,14 @@ def command_check(args: argparse.Namespace) -> int:
     gate_payload["plan_id"] = spec["plan_id"]
     gate_payload["checkpoint"] = spec["checkpoint"]
     gate_payload["title"] = spec["title"]
+    gate_payload["profile"] = spec["profile"]
     gate_payload["verdict"] = verdict
-    gate_payload["summary"] = summary
+    gate_payload["summary"] = acceptance_summary_for(spec, verdict, summary)
     gate_payload["waiver"] = gate_payload.get("waiver")
+    if spec["profile"] == "acceptance":
+        gate_payload["acceptance_target"] = spec.get("acceptance_target", "")
+        gate_payload["acceptance_gaps"] = acceptance_gaps_for(spec, verdict)
+        gate_payload["required_evidence"] = list(spec.get("required_evidence") or [])
     gate_payload.setdefault("attempts", []).append(attempt)
 
     path = write_gate(root, spec, gate_payload)
@@ -363,7 +446,7 @@ def command_check(args: argparse.Namespace) -> int:
         "plan_id": spec["plan_id"],
         "checkpoint": spec["checkpoint"],
         "verdict": verdict,
-        "summary": summary,
+        "summary": gate_payload["summary"],
         "gate_path": relpath(path, root),
     }
     print(json.dumps(response, indent=2, ensure_ascii=True))
@@ -385,6 +468,7 @@ def load_status_payload(root: Path, plan_id: str, checkpoint: str) -> dict[str, 
         "plan_id": plan_id,
         "checkpoint": checkpoint_slug(checkpoint),
         "title": checkpoint_slug(checkpoint),
+        "profile": "default",
         "verdict": "pending",
         "summary": "Checkpoint artifacts do not exist yet.",
         "updated_at": utc_now(),
@@ -453,6 +537,22 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument("--id", required=True, help="Plan ID")
     init_parser.add_argument("--checkpoint", required=True, help="Checkpoint name or CHK-* id")
     init_parser.add_argument("--title", help="Human-readable checkpoint title")
+    init_parser.add_argument(
+        "--profile",
+        choices=sorted(VALID_PROFILES),
+        default="default",
+        help="Checkpoint profile. Default: default.",
+    )
+    init_parser.add_argument(
+        "--acceptance-target",
+        help="Semantic acceptance target summary for acceptance profile checkpoints",
+    )
+    init_parser.add_argument(
+        "--required-evidence",
+        action="append",
+        default=[],
+        help="Required evidence item for acceptance profile checkpoints",
+    )
     init_parser.add_argument(
         "--validation-command",
         action="append",

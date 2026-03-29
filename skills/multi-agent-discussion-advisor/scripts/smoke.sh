@@ -78,6 +78,7 @@ required_files=(
   "$SKILL_ROOT/references/platform-adapters.md"
   "$SKILL_ROOT/references/regression-cases.md"
   "$SKILL_ROOT/references/examples/README.md"
+  "$SKILL_ROOT/references/examples/ex-preflight-plan-review.md"
   "$SKILL_ROOT/references/examples/ex-real-multi-agent-review.md"
 )
 
@@ -117,6 +118,11 @@ fi
 
 if ! rg -q "single-role-ok|multi-role-recommended|inconclusive" "$SKILL_ROOT/references/output-contract.md"; then
   echo "error: output-contract missing verdict enum" >&2
+  exit 1
+fi
+
+if ! rg -q "preflight-review|preflight_review|approve|revise|block" "$SKILL_ROOT/SKILL.md" "$SKILL_ROOT/references/output-contract.md"; then
+  echo "error: preflight review guidance missing" >&2
   exit 1
 fi
 

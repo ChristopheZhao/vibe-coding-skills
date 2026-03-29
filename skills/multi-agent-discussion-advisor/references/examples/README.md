@@ -5,6 +5,7 @@ Use examples as pattern references, not rigid case routing.
 - `ex-prd-ai-feasibility.md`: requirement discussion template with feasibility uncertainty.
 - `ex-cross-role-architecture.md`: architecture trade-off template requiring cross-role inputs.
 - `ex-project-product-architecture-assessment.md`: project-level product/function and architecture assessment discussion template.
+- `ex-preflight-plan-review.md`: preflight review template for a plan before execution starts.
 - `ex-real-multi-agent-review.md`: explicit real sub-agent delegation template for discussion review.
 - `ex-blocked-solution-reframe.md`: blocked-path reframing template.
 - `non-example-routine-bugfix.md`: routine bugfix that should not trigger this skill.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Execution Mode Selector"
+  short_description: "Choose one-shot vs research, discussion, or sprint mode before coding starts"
+  default_prompt: "Use $execution-mode-selector before implementation starts when a coding task may be too complex, uncertain, or verification-heavy for one continuous solo rollout. The skill should choose one of: one-shot, research-first, discussion-first, or sprint-required, explain why, and emit only coarse sprint topology without taking over plan lifecycle, checkpoint verdicts, or runtime orchestration."

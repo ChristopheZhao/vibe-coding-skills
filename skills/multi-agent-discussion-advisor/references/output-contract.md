@@ -14,6 +14,8 @@
 - `handoff_note`: concise input for execution-phase planning.
 
 ## 2. Optional Fields
+- `discussion_mode`: `standard-discussion` or `preflight-review`
+- `preflight_review`: plan-level advisory fields for `approve`, `revise`, or `block`
 - `alternatives_considered`: rejected patterns and reasons.
 - `decision_confidence`: low/medium/high with reason.
 - `open_questions`: unresolved issues that block execution.
@@ -73,6 +75,17 @@
       "summary": "Target modules exist but not yet the single enforced main path"
     }
   ],
+  "discussion_mode": "preflight-review",
+  "preflight_review": {
+    "verdict": "revise",
+    "focus": [
+      "owner boundary remains unclear between acceptance and checkpoint ownership"
+    ],
+    "required_revisions": [
+      "keep acceptance under checkpoint owner for phase 1",
+      "defer standalone evaluator skill extraction"
+    ]
+  },
   "synthesis": {
     "consensus": [
       "Current project is a strong prototype with migration residue"

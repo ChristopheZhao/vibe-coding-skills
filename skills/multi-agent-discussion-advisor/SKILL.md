@@ -1,6 +1,6 @@
 ---
 name: multi-agent-discussion-advisor
-description: "Guide discussion-phase multi-agent decision making for vibe coding projects by providing role design and a launch specification for the host coding agent to start multi-agent review. Use when users need cross-role synthesis to evaluate options and converge on one recommendation across product, requirement, architecture, or hard-problem discussions. Do not use for execution planning, business runtime orchestration, or direct implementation."
+description: "Guide discussion-phase multi-agent decision making for vibe coding projects by providing role design and a launch specification for the host coding agent to start multi-agent review. Use when users need cross-role synthesis to evaluate options and converge on one recommendation across product, requirement, architecture, or hard-problem discussions, including preflight plan review before execution starts. Do not use for execution planning, business runtime orchestration, or direct implementation."
 ---
 
 # Multi-Agent Discussion Advisor
@@ -20,6 +20,7 @@ Activate when any condition is true:
 - User asks to assess current project product capabilities and technical architecture design from multiple roles.
 - User explicitly asks: "评估下当前项目的产品功能，技术架构设计方案" / "需要多角色综合分析确定方案" / "多角色讨论后定方案".
 - User explicitly asks to run real multi-agent review (for example: "开多个agent评审" / "用多agent讨论后给结论").
+- A draft plan or sprint structure exists and the user wants a preflight review before execution starts.
 - The same design point is repeatedly disputed and needs cross-role alignment.
 - A proposed solution path is blocked and the team needs reframing suggestions.
 - User explicitly asks for collaboration strategy guidance in discussion phase.
@@ -33,6 +34,7 @@ Do not activate when any condition is true:
 This skill does:
 - discussion-phase collaboration pattern guidance
 - role design and launch-signal design for discussion analysis
+- preflight plan review guidance before execution starts
 - minimal-sufficient role selection guidance
 - risk-checkpoint and handoff-note guidance
 
@@ -60,12 +62,13 @@ No business runtime script is required in v1.
 
 ## Workflow Contract
 1. Frame the discussion problem: goal, constraints, uncertainties.
-2. Design a scenario-fit role set and role-level goals.
-3. Produce explicit sub-agent creation briefs and launch signal package from the role design.
-4. Hand off launch signal package to host coding agent for actual sub-agent launch (use `references/subagent-protocol.md`).
-5. Collect sub-agent findings (if launched), identify consensus and disagreements.
-6. Produce advisory card with evidence, risk checkpoints, and handoff note.
-7. If user asks to execute implementation, stop this skill flow and hand off to execution planning skill.
+2. If the mode is `preflight`, review plan assumptions, owner boundaries, and evaluator readiness before execution starts.
+3. Design a scenario-fit role set and role-level goals.
+4. Produce explicit sub-agent creation briefs and launch signal package from the role design.
+5. Hand off launch signal package to host coding agent for actual sub-agent launch (use `references/subagent-protocol.md`).
+6. Collect sub-agent findings (if launched), identify consensus and disagreements.
+7. Produce advisory card with evidence, risk checkpoints, and handoff note.
+8. If user asks to execute implementation, stop this skill flow and hand off to execution planning skill.
 
 ## Hard Rules
 - Advisory only: no business runtime orchestration commands.
@@ -77,6 +80,7 @@ No business runtime script is required in v1.
 - User is not required to provide a full role list; the skill must infer minimal sufficient roles from uncertainty signals.
 - If user explicitly asks for real multi-agent discussion, do not answer with role-play-only output; provide launch signal package for host-agent to start at least 2 sub-agents unless tooling is unavailable.
 - Each delegated sub-agent brief must have a concrete scope and required output format.
+- In `preflight` mode, the skill may emit `approve`, `revise`, or `block` review guidance, but it must not mutate plan lifecycle state.
 
 ## Resource Map
 - Read `references/principles.md` for abstract design principles.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Execution Contract Designer"
+  short_description: "Turn a sprint or work slice into an evaluable execution contract"
+  default_prompt: "Use $execution-contract-designer after execution shape is known and before implementation or validation begins, when a sprint or work slice needs explicit what/why, done signals, evidence checklist, negative cases, and suggested checkpoints. The skill should author a task-specific execution contract without taking over lifecycle state, checkpoint verdicts, or final acceptance review."

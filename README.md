@@ -192,7 +192,7 @@ Practical note:
 ## Milestones and Roadmap
 
 Current milestone:
-- v1 foundation shipped with 8 skills for core vibe coding scenarios.
+- v1 foundation plus phase-1 harness expansion currently ship 10 skills for core vibe coding scenarios.
 
 Next expansion focus:
 - Long-running workflow skills: support resumable execution guidance, checkpoint/handoff discipline, and low-loss context continuity for multi-session coding work.

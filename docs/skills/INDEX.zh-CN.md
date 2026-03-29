@@ -10,6 +10,8 @@
 | `sdd-plan-maintainer` | 让复杂编码任务变得可执行、可治理 | 具体计划 + 生命周期状态更新 | 用户要求具体功能/修复计划、进度跟踪或计划收口时 | 负责 plan lifecycle，不负责 runtime orchestration | [SKILL.md](../../skills/sdd-plan-maintainer/SKILL.md) |
 | `checkpoint-gatekeeper` | 防止未验证的 checkpoint 结果继续向后传播 | checkpoint checklist + gate verdict artifacts | 阶段化工作进入下一阶段前，必须先验证当前 checkpoint，并允许有限自动修复与显式升级时 | 负责 checkpoint 验证产物，不拥有 plan lifecycle 状态 | [SKILL.md](../../skills/checkpoint-gatekeeper/SKILL.md) |
 | `checkpoint-commit-advisor` | 决定是否以及如何在下一阶段前冻结 dirty worktree | checkpoint commit strategy advisory | 大型或混合 dirty tree 在进入新阶段、新计划或新窗口前，可能需要 governance anchor 或 known-bad snapshot 提交时 | 负责 checkpoint commit 策略建议，不拥有 lifecycle 真值，也不直接接管 git history 执行 | [SKILL.md](../../skills/checkpoint-commit-advisor/SKILL.md) |
+| `execution-contract-designer` | 定义一个已选 sprint 或工作切片到底闭什么，以及后续 gate 应看什么 | contract spec + suggested checkpoints | 某个 sprint 或工作切片已经选定，但它的 done criteria、evidence 或后续 checkpoint 输入还很模糊时 | 只负责切片级 contract 设计，不决定 one-shot 还是 sprint | [SKILL.md](../../skills/execution-contract-designer/SKILL.md) |
+| `execution-mode-selector` | 在编码前决定整个任务应该怎么跑 | mode verdict + 粗粒度 sprint 拓扑 | 你还需要先判断这个任务应该 one-shot、先 research、先 discussion，还是拆成 sprints 时 | 只负责任务级执行形态选择，不定义某个已选切片的完成标准 | [SKILL.md](../../skills/execution-mode-selector/SKILL.md) |
 | `session-handoff` | 为新窗口续做卸载当前 session 上下文 | session continuation pack | 当前窗口需要在继续同一任务前，先总结进展、阻碍和下一步 | 负责 session 级聚合，不拥有 plan/memory/experience 真相 | [SKILL.md](../../skills/session-handoff/SKILL.md) |
 | `layered-project-memory` | 保持中断工作后的项目连续性 | 分层记忆记录 + 聚焦上下文包 | 用户需要持久项目状态、关键事件、重复尝试记忆或 resume/debug/release 上下文时 | 负责 continuity memory，不负责经验卡持久化 | [SKILL.md](../../skills/layered-project-memory/SKILL.md) |
 | `experience-capture` | 将高价值经验沉淀为可复用指导 | 经验卡片 | 用户要求总结可复用 lessons、决策规则或 review checklist 时 | 负责跨任务经验，不负责下个窗口 handoff | [SKILL.md](../../skills/experience-capture/SKILL.md) |
@@ -20,4 +22,5 @@
 
 - 本页是公开目录，不是技能语义真相源。
 - 具体 workflow、触发规则、反目标以各 skill 的 `SKILL.md` 为准。
+- 常见顺序：如果整个任务怎么执行还不明确，先用 `execution-mode-selector`；只有在某个 sprint / 工作切片已经存在、但完成标准还不清楚时，再用 `execution-contract-designer`。
 - 仓库结构与跨工具发布规则继续见 [README.zh-CN.md](../../README.zh-CN.md) 和 [docs/compatibility/skills-matrix.md](../compatibility/skills-matrix.md)。

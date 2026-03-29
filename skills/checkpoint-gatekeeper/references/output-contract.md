@@ -12,12 +12,18 @@
 - `plan_id`
 - `checkpoint`
 - `title`
+- `profile`
 - `verdict`
 - `summary`
 - `updated_at`
 - `checklist_path`
 - `attempts`
 - `waiver`
+
+## Optional Acceptance Fields
+- `acceptance_target`
+- `acceptance_gaps`
+- `required_evidence`
 
 ## Attempt Record Fields
 - `attempt`
@@ -31,3 +37,4 @@
 - `status` must show the current verdict without mutating artifacts.
 - `check` must write deterministic evidence to the gate JSON.
 - Non-passing verdicts must return a non-zero exit code.
+- `acceptance` profile must reuse the same verdict enum rather than inventing a second verdict surface.
