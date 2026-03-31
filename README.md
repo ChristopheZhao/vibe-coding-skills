@@ -14,6 +14,7 @@ English | [简体中文](README.zh-CN.md)
 
 This repository provides reusable skills that improve coding outcomes through:
 - planning and lifecycle governance
+- deferred-but-binding technical guardrails for long-horizon migrations
 - checkpoint validation and bounded remediation gates
 - checkpoint commit strategy for large dirty worktrees
 - session handoff and context offload
@@ -197,7 +198,7 @@ Practical note:
 ## Milestones and Roadmap
 
 Current milestone:
-- v1 foundation plus phase-1 harness expansion currently ship 10 skills for core vibe coding scenarios.
+- v1 foundation plus phase-1 harness expansion currently ship 11 skills for core vibe coding scenarios.
 
 Next expansion focus:
 - Long-running workflow skills: support resumable execution guidance, checkpoint/handoff discipline, and low-loss context continuity for multi-session coding work.

@@ -23,6 +23,11 @@ Default guidance:
 - New long-running or multi-turn plans should be managed.
 - Status update and archive requests must be managed.
 
+## 2A. Optional External Guardrails
+- If a host workflow explicitly supplies external planning guardrails, reflect them in the plan output.
+- Treat those guardrails as read-only input, not as a second lifecycle system.
+- Do not discover, parse, or validate optional guardrail artifacts from other skills inside `sdd-plan-maintainer`.
+
 ## 3. Long-Run Safety
 Do not keep this skill active for the entire implementation lifecycle.
 Use it at planning or governance milestones only:
@@ -71,7 +76,7 @@ Archive only when all are true:
 - Plan file is moved from `docs/plans/active/` to `docs/plans/archive/YYYY-MM/`.
 
 ## 8. Decide Whether Script Is Needed
-Use `scripts/plan_ops.py` when consistency and auditability matter:
+Use the skill-bundled `scripts/plan_ops.py` (resolved relative to this skill root) when consistency and auditability matter:
 - Multiple managed plans are maintained in parallel.
 - Status transitions must be enforced.
 - `PLAN_INDEX.json` must stay schema-consistent.

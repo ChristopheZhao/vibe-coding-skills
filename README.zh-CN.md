@@ -14,6 +14,7 @@
 
 本仓库提供一组可复用 skills，通过以下能力方向提升 AI coding 产出：
 - 规划与生命周期治理
+- 面向长期迁移方向的 deferred 技术约束
 - checkpoint 验证与有限自动修复门控
 - 面向大型 dirty tree 的 checkpoint commit 策略
 - session 交接与 context offload
@@ -197,7 +198,7 @@ Test 设计：
 ## 里程碑与 Roadmap
 
 当前里程碑：
-- v1 基座加 phase-1 harness 扩展已完成，当前包含 10 个核心 vibe coding 场景 skills。
+- v1 基座加 phase-1 harness 扩展已完成，当前包含 11 个核心 vibe coding 场景 skills。
 
 下一阶段扩展方向：
 - 长时运行类 skill：支持可恢复执行、checkpoint/handoff 纪律，以及多会话编码中的低损耗上下文连续性。

@@ -29,6 +29,12 @@ Use this template for new capability development.
 - API/contract changes:
 - Migration or compatibility notes:
 
+## Deferred Constraints Applied (Optional)
+- Source:
+- Do not:
+- Allowed now:
+- Reopen trigger:
+
 ## 4. Technical Solution
 - Key design choices:
 - Trade-offs:
@@ -82,6 +88,12 @@ Use this template for bug fixes or refactor work.
 - Patch strategy:
 - Compatibility considerations:
 - Rollback plan:
+
+## Deferred Constraints Applied (Optional)
+- Source:
+- Do not:
+- Allowed now:
+- Reopen trigger:
 
 ## 4. Execution Checklist
 - [ ] Reproduce issue

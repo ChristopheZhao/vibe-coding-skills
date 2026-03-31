@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deferred Plan Anchor"
+  short_description: "Freeze deferred but active technical guardrails and resolve whether planning should inherit them"
+  default_prompt: "Use $deferred-plan-anchor when a long-horizon technical direction should be deferred for now but still needs active guardrails so near-term planning does not drift farther away. Use it to manage deferred-plan artifacts and to resolve whether current planning should inherit those guardrails."

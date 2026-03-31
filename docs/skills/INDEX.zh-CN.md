@@ -17,6 +17,7 @@
 | `experience-capture` | 将高价值经验沉淀为可复用指导 | 经验卡片 | 用户要求总结可复用 lessons、决策规则或 review checklist 时 | 负责跨任务经验，不负责下个窗口 handoff | [SKILL.md](../../skills/experience-capture/SKILL.md) |
 | `knowledge-refresh` | 用外部证据降低过时假设带来的风险 | 基于来源的结论判定 | 技术判断需要校验、官方新鲜度或更强证据后再决策时 | 依赖权威外部来源，不替代本地代码调试 | [SKILL.md](../../skills/knowledge-refresh/SKILL.md) |
 | `multi-agent-discussion-advisor` | 在执行前提升复杂讨论质量 | discussion advisory card + 启动说明 | 高不确定性的产品/需求/架构讨论需要真实多角色综合判断时 | 只做 advisory，不直接做实现或 runtime orchestration | [SKILL.md](../../skills/multi-agent-discussion-advisor/SKILL.md) |
+| `deferred-plan-anchor` | 冻结“暂不执行但当前生效”的技术约束 | deferred-plan 产物 + planning 约束解析结果 | 长期技术方向已确定但本期不做，且近期 planning 仍需受其约束时 | 负责 deferred guardrail，不拥有执行计划 lifecycle，也不是 backlog | [SKILL.md](../../skills/deferred-plan-anchor/SKILL.md) |
 
 ## 说明
 

@@ -17,6 +17,7 @@ For each skill, the source of truth is the linked `skills/<slug>/SKILL.md`.
 | `experience-capture` | Convert hard-earned lessons into reusable guidance | experience cards | when users ask to summarize reusable lessons, decision rules, or review checklists | owns cross-task lessons, not next-window handoff | [SKILL.md](../../skills/experience-capture/SKILL.md) |
 | `knowledge-refresh` | Reduce stale assumptions with external evidence | source-backed claim verdict | when a technical claim needs verification, official freshness, or stronger evidence before coding decisions | uses authoritative external sources, not local-only debugging | [SKILL.md](../../skills/knowledge-refresh/SKILL.md) |
 | `multi-agent-discussion-advisor` | Improve discussion quality before execution starts | discussion advisory card + launch specification | when high-uncertainty product/requirement/architecture discussion needs real multi-role synthesis | advisory-only; not direct implementation or runtime orchestration | [SKILL.md](../../skills/multi-agent-discussion-advisor/SKILL.md) |
+| `deferred-plan-anchor` | Freeze deferred but currently binding technical guardrails | deferred-plan artifacts + planning-resolution output | when a long-horizon technical direction is intentionally deferred now but must still constrain near-term planning | owns deferred guardrails, not execution-plan lifecycle or backlog | [SKILL.md](../../skills/deferred-plan-anchor/SKILL.md) |
 
 ## Notes
 
