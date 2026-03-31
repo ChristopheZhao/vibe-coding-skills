@@ -27,6 +27,7 @@ This skill does:
 - summarize current-session progress for next-window continuation
 - aggregate high-signal refs from plans, memory, experience, and process docs
 - preserve blockers, next actions, and avoid-repeat guidance
+- point the next window to the right execution entrypoint before coding when direct coding would be unsafe
 
 This skill does not:
 - own plan lifecycle status
@@ -34,6 +35,7 @@ This skill does not:
 - own project memory truth
 - archive full chat transcripts
 - auto-write back to plan, memory, or experience docs in MVP
+- author or refresh implementation plans itself
 
 ## Ownership Boundary
 - `sdd-plan-maintainer` owns plan lifecycle and plan status truth under `docs/plans/`.
@@ -44,6 +46,7 @@ This skill does not:
 Boundary rule:
 - Read canonical artifact surfaces under `docs/` rather than depending on a specific skill name or output.
 - Treat plan, memory, and experience docs as source of truth; the handoff pack is only a pointer-first aggregation layer.
+- If a next-window plan review or plan creation should happen before coding, point to the right owner and current entrypoint, but do not write the plan content here.
 
 ## Script Decision
 Use the skill-bundled `scripts/smoke.sh` for structure and contract checks only.
@@ -73,6 +76,8 @@ No business runtime script is required in MVP.
    - read related memory refs
    - read related experience refs and `Avoid Repeat`
    - then start new planning
+8. When direct coding would be unsafe, add one concise `Before coding` hint inside `Next Window Boot` that points to the current execution entrypoint or the next planning owner.
+   Keep it pointer-first; do not turn the handoff into a plan or execution contract.
 
 ## Hard Rules
 - MVP is explicit-trigger only; no `suggest-once`.
@@ -82,6 +87,7 @@ No business runtime script is required in MVP.
 - Keep references repo-relative whenever possible.
 - Do not copy large logs or long document excerpts; summarize and point.
 - If the current session invalidates an older plan, mark that plan as historical or reference-only in the pack and point to the new diagnostic entry, but do not mutate plan lifecycle state in this skill.
+- Do not author plan steps, acceptance criteria, or execution contracts inside the handoff pack; only point to the next planning owner when needed.
 
 ## Resource Map
 - Read `references/positioning-boundary.md` for scope and layer split.
@@ -89,6 +95,7 @@ No business runtime script is required in MVP.
 - Read `references/canonical-surfaces.md` for artifact-surface reading rules.
 - Read `references/process-protocol.md` for execution flow and handoff order.
 - Read `references/output-contract.md` for Markdown section contract.
+- Read `references/resume-entrypoint-guidance.md` when the next window may need a plan review or a plan refresh before coding.
 - Read `references/regression-cases.md` for trigger-boundary regression checks.
 - Read `references/examples/README.md` for examples and non-examples.
 - Use the skill-bundled `scripts/smoke.sh` for deterministic smoke checks.

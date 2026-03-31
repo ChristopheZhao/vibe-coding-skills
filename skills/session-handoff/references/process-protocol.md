@@ -39,6 +39,8 @@
 - `Next Window Boot`
   - State exactly what to read first and what the first action should be.
   - If an older plan should not be continued by default, name it and say so directly.
+  - When direct coding would be unsafe, add one concise `Before coding` line that points to the current execution entrypoint or the next planning owner.
+  - Keep that line pointer-first. It may say to review an existing plan or create/refresh one, but it must not inline plan content.
 - `Source of Truth`
   - State that plan lifecycle truth remains in `docs/plans/`, code facts remain in repository or Git evidence, and the handoff pack is only a continuation layer.
 
@@ -50,7 +52,14 @@
 5. Read related experience refs and `Avoid Repeat`.
 6. Start new planning after the above is understood.
 
-## 7. MVP Guardrails
+## 7. Resume Entrypoint Guidance
+- Omit any extra `Before coding` hint when direct coding is obviously safe and the task is tiny.
+- If a current valid execution plan still exists, use a concrete note such as `Before coding: review PLAN-... and confirm it still covers the current execution entrypoint.`
+- If no current valid execution entrypoint exists, use a concrete note such as `Before coding: create or refresh the implementation plan in sdd-plan-maintainer.`
+- If an older plan is now `historical` or `reference-only`, say so directly rather than inventing an abstract label.
+- See `resume-entrypoint-guidance.md` for phrasing patterns and anti-patterns.
+
+## 8. MVP Guardrails
 - Explicit trigger only.
 - One Markdown pack only.
 - No `.json` sidecar.

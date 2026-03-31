@@ -10,6 +10,7 @@
   - the older plan marked as historical or reference-only
   - the new diagnosis entrypoint and code refs
   - an explicit first action for the next window
+  - a concise `Before coding: create or refresh the implementation plan in sdd-plan-maintainer.` note
   - a note about what not to continue by default
 
 ## Why This Fits
