@@ -51,7 +51,7 @@ Boundary rule:
 - If the task still needs high-level architecture or product alignment, route to `multi-agent-discussion-advisor` before writing a slice contract.
 
 ## Script Decision
-Use `scripts/smoke.sh` for structure and contract checks only.
+Use the skill-bundled `scripts/smoke.sh` for structure and contract checks only.
 No business runtime script is required in v1.
 
 ## Workflow Contract
@@ -84,4 +84,4 @@ No business runtime script is required in v1.
 - Read `references/output-contract.md` for output schema and examples.
 - Read `references/regression-cases.md` for trigger-boundary regression expectations.
 - Read `references/examples/README.md` for positive and negative examples.
-- Use `scripts/smoke.sh` for deterministic smoke checks.
+- Use the skill-bundled `scripts/smoke.sh` for deterministic smoke checks.

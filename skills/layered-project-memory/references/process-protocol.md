@@ -49,10 +49,12 @@ Run `doctor`:
 - Apply `--dry-run` before aggressive retention changes.
 
 ## 9. Command Examples
-```bash
-python scripts/memory_ops.py init --root .
+`<skill-root>` means the directory that contains this skill's `SKILL.md` in either the source tree or an installed runtime skill directory.
 
-python scripts/memory_ops.py capture --root . \
+```bash
+python <skill-root>/scripts/memory_ops.py init --root .
+
+python <skill-root>/scripts/memory_ops.py capture --root . \
   --topic-id checkout-timeout \
   --event-type blocker \
   --summary "integration test failed on API contract mismatch" \
@@ -63,8 +65,8 @@ python scripts/memory_ops.py capture --root . \
   --doc-ref docs/adr/0012-retry-policy.md#decision \
   --evidence logs/test-api-contract.txt
 
-python scripts/memory_ops.py retrieve --root . --profile debug --topic-id checkout-timeout
-python scripts/memory_ops.py summarize --root . --topic-id checkout-timeout --profile resume --mode incremental
-python scripts/memory_ops.py doctor --root .
-python scripts/memory_ops.py gc --root . --retain-events 200 --retain-key-events 100 --retain-snapshots 50 --dry-run
+python <skill-root>/scripts/memory_ops.py retrieve --root . --profile debug --topic-id checkout-timeout
+python <skill-root>/scripts/memory_ops.py summarize --root . --topic-id checkout-timeout --profile resume --mode incremental
+python <skill-root>/scripts/memory_ops.py doctor --root .
+python <skill-root>/scripts/memory_ops.py gc --root . --retain-events 200 --retain-key-events 100 --retain-snapshots 50 --dry-run
 ```

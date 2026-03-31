@@ -44,8 +44,8 @@ Boundary rule:
 - This skill may read plan checkpoints for linkage, but it must not mutate plan lifecycle state.
 
 ## Script Decision
-Use `scripts/gate_ops.py` for deterministic artifact creation, validation loops, verdict writing, and waiver handling.
-Use `scripts/smoke.sh` for structure and minimal CLI-contract checks.
+Use the skill-bundled `scripts/gate_ops.py` (resolved relative to this skill root) for deterministic artifact creation, validation loops, verdict writing, and waiver handling.
+Use the skill-bundled `scripts/smoke.sh` for structure and minimal CLI-contract checks.
 
 ## Workflow Contract
 1. Confirm the target `plan_id` and `checkpoint`.
@@ -78,5 +78,5 @@ Use `scripts/smoke.sh` for structure and minimal CLI-contract checks.
 - Read `references/output-contract.md` for verdict semantics and gate artifact fields.
 - Read `references/regression-cases.md` for trigger-boundary and no-overlap regression cases.
 - Read `references/examples/README.md` for positive and negative examples.
-- Use `scripts/gate_ops.py` for deterministic gate operations.
-- Use `scripts/smoke.sh` for deterministic smoke checks.
+- Use the skill-bundled `scripts/gate_ops.py` for deterministic gate operations.
+- Use the skill-bundled `scripts/smoke.sh` for deterministic smoke checks.

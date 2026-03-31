@@ -46,7 +46,7 @@ Boundary rule:
 - Treat plan, memory, and experience docs as source of truth; the handoff pack is only a pointer-first aggregation layer.
 
 ## Script Decision
-Use `scripts/smoke.sh` for structure and contract checks only.
+Use the skill-bundled `scripts/smoke.sh` for structure and contract checks only.
 No business runtime script is required in MVP.
 
 ## Workflow Contract
@@ -91,4 +91,4 @@ No business runtime script is required in MVP.
 - Read `references/output-contract.md` for Markdown section contract.
 - Read `references/regression-cases.md` for trigger-boundary regression checks.
 - Read `references/examples/README.md` for examples and non-examples.
-- Use `scripts/smoke.sh` for deterministic smoke checks.
+- Use the skill-bundled `scripts/smoke.sh` for deterministic smoke checks.

@@ -41,7 +41,7 @@ Boundary rule:
 - This skill may output evidence pointers and recommendations, but does not write memory/experience records by itself.
 
 ## Script Decision
-Use `scripts/smoke.sh` only for structure/contract checks.
+Use the skill-bundled `scripts/smoke.sh` for structure/contract checks only.
 No business runtime script is required in v1.
 
 ## Workflow Contract
@@ -66,4 +66,4 @@ No business runtime script is required in v1.
 - Read `references/output-contract.md` for output structure and field definitions.
 - Read `references/examples.md` for positive and negative examples.
 - Read `references/regression-cases.md` for trigger-boundary regression cases.
-- Use `scripts/smoke.sh` for deterministic smoke checks.
+- Use the skill-bundled `scripts/smoke.sh` for deterministic smoke checks.

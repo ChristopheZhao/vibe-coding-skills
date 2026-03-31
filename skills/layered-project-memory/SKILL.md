@@ -47,7 +47,7 @@ Boundary rules:
 - Summary is derived from memory records; it is not a second source of truth.
 
 ## Script Decision
-Use `scripts/memory_ops.py` for deterministic storage, retrieval, and consistency checks.
+Use the skill-bundled `scripts/memory_ops.py` (resolved relative to this skill root) for deterministic storage, retrieval, and consistency checks.
 Avoid manual editing of memory artifacts unless recovery is required.
 
 ## Workflow Contract
@@ -72,4 +72,4 @@ Avoid manual editing of memory artifacts unless recovery is required.
 - Read `references/schemas.md` for L1/L2/L3 schema rules.
 - Read `references/retrieval-profiles.md` for profile contracts and ranking policy.
 - Read `references/regression-cases.md` for regression expectations.
-- Use `scripts/memory_ops.py` for managed operations.
+- Use the skill-bundled `scripts/memory_ops.py` for managed operations.

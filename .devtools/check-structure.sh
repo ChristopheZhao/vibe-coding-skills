@@ -66,6 +66,19 @@ issues=0
 checked=0
 allowed_entries=(SKILL.md agents references scripts assets)
 
+check_ambiguous_script_path_docs() {
+  local file
+  local hit
+
+  while IFS= read -r -d '' file; do
+    while IFS= read -r hit; do
+      echo "error: ambiguous script path reference in ${file#$REPO_ROOT/}:$hit" >&2
+      echo "       use '<skill-root>/scripts/...' in commands or 'the skill-bundled \`scripts/...\`' in prose" >&2
+      issues=$((issues + 1))
+    done < <(grep -nE 'Use `scripts/|(^|[[:space:]>`])(python|python3|bash) scripts/|uv run --active python scripts/' "$file" || true)
+  done < <(find "$SKILLS_DIR" -type f -name '*.md' -print0 | sort -z)
+}
+
 while IFS= read -r -d '' skill_dir; do
   checked=$((checked + 1))
   skill_name="$(basename "$skill_dir")"
@@ -90,6 +103,8 @@ while IFS= read -r -d '' skill_dir; do
     fi
   done < <(find "$skill_dir" -mindepth 1 -maxdepth 1 -print0)
 done < <(find "$SKILLS_DIR" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
+
+check_ambiguous_script_path_docs
 
 if [[ "$checked" -eq 0 ]]; then
   echo "error: no skill directories found under $SKILLS_DIR" >&2

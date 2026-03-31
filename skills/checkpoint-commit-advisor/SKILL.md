@@ -49,8 +49,8 @@ Boundary rule:
 - The default output is advisory. Real git writes require explicit user confirmation.
 
 ## Script Decision
-Use `scripts/commit_advisor.py` for deterministic dirty-tree analysis and proposal output.
-Use `scripts/smoke.sh` for structure and minimal CLI-contract checks.
+Use the skill-bundled `scripts/commit_advisor.py` (resolved relative to this skill root) for deterministic dirty-tree analysis and proposal output.
+Use the skill-bundled `scripts/smoke.sh` for structure and minimal CLI-contract checks.
 
 ## Workflow Contract
 1. Inspect the dirty worktree and collect health signals.
@@ -74,5 +74,5 @@ Use `scripts/smoke.sh` for structure and minimal CLI-contract checks.
 - Read `references/output-contract.md` for output schema and commit-layer semantics.
 - Read `references/regression-cases.md` for trigger-boundary and blocking regression cases.
 - Read `references/examples/README.md` for positive and negative examples.
-- Use `scripts/commit_advisor.py` for deterministic advisory output.
-- Use `scripts/smoke.sh` for deterministic smoke checks.
+- Use the skill-bundled `scripts/commit_advisor.py` for deterministic advisory output.
+- Use the skill-bundled `scripts/smoke.sh` for deterministic smoke checks.

@@ -57,7 +57,7 @@ Boundary rule:
 - If user request shifts to execution planning, route to `sdd-plan-maintainer`.
 
 ## Script Decision
-Use `scripts/smoke.sh` for structure and contract checks only.
+Use the skill-bundled `scripts/smoke.sh` for structure and contract checks only.
 No business runtime script is required in v1.
 
 ## Workflow Contract
@@ -93,4 +93,4 @@ No business runtime script is required in v1.
 - Read `references/platform-adapters.md` for Codex/Claude discussion-phase adapter hints.
 - Read `references/regression-cases.md` for trigger-boundary regression cases.
 - Read `references/examples/README.md` for example index and usage notes.
-- Use `scripts/smoke.sh` for deterministic smoke checks.
+- Use the skill-bundled `scripts/smoke.sh` for deterministic smoke checks.

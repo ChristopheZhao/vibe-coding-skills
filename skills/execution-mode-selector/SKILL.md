@@ -50,7 +50,7 @@ Boundary rule:
 - If a sprint or work slice already exists and only its completion contract is missing, route to `execution-contract-designer` instead of re-running execution-shape selection.
 
 ## Script Decision
-Use `scripts/smoke.sh` for structure and contract checks only.
+Use the skill-bundled `scripts/smoke.sh` for structure and contract checks only.
 No business runtime script is required in v1.
 
 ## Workflow Contract
@@ -86,4 +86,4 @@ No business runtime script is required in v1.
 - Read `references/output-contract.md` for output fields and verdict schema.
 - Read `references/regression-cases.md` for trigger-boundary regression expectations.
 - Read `references/examples/README.md` for positive and negative examples.
-- Use `scripts/smoke.sh` for deterministic smoke checks.
+- Use the skill-bundled `scripts/smoke.sh` for deterministic smoke checks.

@@ -48,7 +48,7 @@ This skill does not:
 - If the user's real need is long-term project continuity / restore full project state, use `layered-project-memory` and only derive cards here when reusable lessons exist.
 
 ## Script Decision
-Use `scripts/exp_ops.py` for deterministic experience card initialization, creation, listing, and linking.
+Use the skill-bundled `scripts/exp_ops.py` (resolved relative to this skill root) for deterministic experience card initialization, creation, listing, and linking.
 Avoid manual editing unless recovery is required.
 
 ## Workflow Contract
@@ -86,4 +86,4 @@ Avoid manual editing unless recovery is required.
 - Read `references/reference/regression-cases.md` for触发与关联回归样例.
 - Read `references/examples/README.md` for样例目录导航.
 - Read `references/examples/*.md` for可复用经验样例与非样例.
-- Use `scripts/exp_ops.py` for managed operations.
+- Use the skill-bundled `scripts/exp_ops.py` for managed operations.

@@ -53,6 +53,11 @@ Optional (recommended when needed):
 
 The `skill-slug` should stay stable after publishing because runtime installers map folder names directly.
 
+Script path convention:
+- In skill docs, executable examples for skill-bundled tools should use `<skill-root>/scripts/...`.
+- Reserve `--root` or `--repo-root` for the target workspace being operated on.
+- Avoid executable examples like `python scripts/...`, which are ambiguous with the caller's current working directory.
+
 Example (single-skill structure):
 
 ```text
