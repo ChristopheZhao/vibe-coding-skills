@@ -152,6 +152,45 @@ fi
   --required-evidence "contract gaps empty" \
   --validation-command "true" >/dev/null
 
+cat > "$TMP_DIR/docs/checkpoints/PLAN-T-001/CHK-B-evidence.json" <<'EOF'
+{
+  "plan_id": "PLAN-T-001",
+  "checkpoint": "CHK-B",
+  "acceptance_target": "semantic closure for sprint B",
+  "contract_ref": "docs/contracts/CHK-B.json",
+  "evidence_refs": [
+    "results/CHK-B-smoke.txt"
+  ],
+  "changed_artifact_paths": [
+    "skills/checkpoint-gatekeeper/scripts/gate_ops.py"
+  ],
+  "negative_cases": [
+    "Do not create a second verdict owner."
+  ],
+  "declared_out_of_scope": [
+    "No standalone verifier skill."
+  ],
+  "executor_summary": "Implemented checkpoint B scope and linked smoke evidence."
+}
+EOF
+
+cat > "$TMP_DIR/docs/checkpoints/PLAN-T-001/CHK-B-acceptance-review.json" <<'EOF'
+{
+  "plan_id": "PLAN-T-001",
+  "checkpoint": "CHK-B",
+  "reviewer_kind": "peer_agent",
+  "review_verdict": "accept",
+  "contract_closure": "satisfied",
+  "evidence_sufficiency": "sufficient",
+  "gap_severity": "none",
+  "gaps": [],
+  "cited_evidence": [
+    "results/CHK-B-smoke.txt"
+  ],
+  "summary": "Independent review accepted checkpoint B."
+}
+EOF
+
 "$PYTHON_BIN" "$SKILL_ROOT/scripts/gate_ops.py" --root "$TMP_DIR" check \
   --id PLAN-T-001 \
   --checkpoint CHK-B >/dev/null
@@ -170,6 +209,16 @@ fi
 
 if [[ "$ACCEPTANCE_STATUS" != *'"required_evidence": ['* ]]; then
   echo "error: required evidence missing from gate JSON" >&2
+  exit 1
+fi
+
+if [[ "$ACCEPTANCE_STATUS" != *'"evidence_path": "docs/checkpoints/PLAN-T-001/CHK-B-evidence.json"'* ]]; then
+  echo "error: evidence path missing from acceptance gate JSON" >&2
+  exit 1
+fi
+
+if [[ "$ACCEPTANCE_STATUS" != *'"acceptance_review_path": "docs/checkpoints/PLAN-T-001/CHK-B-acceptance-review.json"'* ]]; then
+  echo "error: acceptance review path missing from acceptance gate JSON" >&2
   exit 1
 fi
 

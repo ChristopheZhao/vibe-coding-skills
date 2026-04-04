@@ -66,6 +66,77 @@ class GateOpsCliTests(unittest.TestCase):
     def _checklist_path(self, checkpoint: str = "CHK-A") -> Path:
         return self.root / "docs" / "checkpoints" / "PLAN-T-001" / f"{checkpoint}-checklist.md"
 
+    def _evidence_path(self, checkpoint: str = "CHK-A") -> Path:
+        return self.root / "docs" / "checkpoints" / "PLAN-T-001" / f"{checkpoint}-evidence.json"
+
+    def _acceptance_review_path(self, checkpoint: str = "CHK-A") -> Path:
+        return self.root / "docs" / "checkpoints" / "PLAN-T-001" / f"{checkpoint}-acceptance-review.json"
+
+    def _init_acceptance_checkpoint(self, checkpoint: str = "CHK-B") -> None:
+        run_cmd(
+            [
+                "init",
+                "--id",
+                "PLAN-T-001",
+                "--checkpoint",
+                checkpoint,
+                "--title",
+                f"{checkpoint} Acceptance",
+                "--profile",
+                "acceptance",
+                "--acceptance-target",
+                "semantic closure for sprint B",
+                "--required-evidence",
+                "smoke passed",
+                "--required-evidence",
+                "contract gaps empty",
+                "--validation-command",
+                "true",
+            ],
+            self.root,
+        )
+
+    def _write_acceptance_evidence(self, checkpoint: str = "CHK-B") -> None:
+        payload = {
+            "plan_id": "PLAN-T-001",
+            "checkpoint": checkpoint,
+            "acceptance_target": "semantic closure for sprint B",
+            "contract_ref": "docs/contracts/CHK-B.json",
+            "evidence_refs": ["results/CHK-B-smoke.txt"],
+            "changed_artifact_paths": ["skills/checkpoint-gatekeeper/scripts/gate_ops.py"],
+            "negative_cases": ["Do not create a second verdict owner."],
+            "declared_out_of_scope": ["No standalone verifier skill."],
+            "executor_summary": "Implemented the declared checkpoint scope and linked smoke output.",
+        }
+        self._evidence_path(checkpoint).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+    def _write_acceptance_review(
+        self,
+        checkpoint: str = "CHK-B",
+        *,
+        review_verdict: str = "accept",
+        contract_closure: str = "satisfied",
+        evidence_sufficiency: str = "sufficient",
+        gap_severity: str = "none",
+        gaps: list[str] | None = None,
+    ) -> None:
+        payload = {
+            "plan_id": "PLAN-T-001",
+            "checkpoint": checkpoint,
+            "reviewer_kind": "peer_agent",
+            "review_verdict": review_verdict,
+            "contract_closure": contract_closure,
+            "evidence_sufficiency": evidence_sufficiency,
+            "gap_severity": gap_severity,
+            "gaps": gaps or [],
+            "cited_evidence": ["results/CHK-B-smoke.txt"],
+            "summary": "Independent review completed.",
+        }
+        self._acceptance_review_path(checkpoint).write_text(
+            json.dumps(payload, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
     def test_init_creates_independent_checkpoint_artifacts(self) -> None:
         run_cmd(
             [
@@ -167,6 +238,120 @@ class GateOpsCliTests(unittest.TestCase):
         gate = read_json(self._gate_path())
         self.assertEqual(gate["verdict"], "needs_user_confirmation")
         self.assertIn("NEEDS_USER_CONFIRMATION", gate["attempts"][-1]["matched_user_confirmation_triggers"])
+
+    def test_acceptance_init_creates_evidence_template(self) -> None:
+        self._init_acceptance_checkpoint()
+
+        evidence = read_json(self._evidence_path("CHK-B"))
+        gate = read_json(self._gate_path("CHK-B"))
+
+        self.assertEqual(evidence["plan_id"], "PLAN-T-001")
+        self.assertEqual(evidence["checkpoint"], "CHK-B")
+        self.assertEqual(evidence["acceptance_target"], "semantic closure for sprint B")
+        self.assertEqual(gate["profile"], "acceptance")
+        self.assertIn("evidence_path", gate)
+        self.assertIn("acceptance_review_path", gate)
+
+    def test_acceptance_check_requires_independent_review_artifact(self) -> None:
+        self._init_acceptance_checkpoint()
+        self._write_acceptance_evidence("CHK-B")
+
+        completed = run_cmd(
+            ["check", "--id", "PLAN-T-001", "--checkpoint", "CHK-B"],
+            self.root,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 3)
+        gate = read_json(self._gate_path("CHK-B"))
+        self.assertEqual(gate["verdict"], "needs_user_confirmation")
+        self.assertTrue(
+            any("acceptance-review.json" in gap for gap in gate["acceptance_gaps"]),
+            gate["acceptance_gaps"],
+        )
+
+    def test_acceptance_check_passes_with_independent_review(self) -> None:
+        self._init_acceptance_checkpoint()
+        self._write_acceptance_evidence("CHK-B")
+        self._write_acceptance_review("CHK-B")
+
+        completed = run_cmd(
+            ["check", "--id", "PLAN-T-001", "--checkpoint", "CHK-B"],
+            self.root,
+        )
+
+        self.assertEqual(completed.returncode, 0)
+        gate = read_json(self._gate_path("CHK-B"))
+        self.assertEqual(gate["verdict"], "pass")
+        self.assertEqual(gate["acceptance_gaps"], [])
+        self.assertIn("Acceptance target satisfied", gate["summary"])
+
+    def test_acceptance_review_revise_requests_user_confirmation(self) -> None:
+        self._init_acceptance_checkpoint()
+        self._write_acceptance_evidence("CHK-B")
+        self._write_acceptance_review(
+            "CHK-B",
+            review_verdict="revise",
+            contract_closure="partial",
+            evidence_sufficiency="insufficient",
+            gap_severity="cosmetic",
+            gaps=["Clarify one remaining acceptance note."],
+        )
+
+        completed = run_cmd(
+            ["check", "--id", "PLAN-T-001", "--checkpoint", "CHK-B"],
+            self.root,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 3)
+        gate = read_json(self._gate_path("CHK-B"))
+        self.assertEqual(gate["verdict"], "needs_user_confirmation")
+        self.assertEqual(gate["acceptance_gaps"], ["Clarify one remaining acceptance note."])
+
+    def test_acceptance_review_block_fails_gate(self) -> None:
+        self._init_acceptance_checkpoint()
+        self._write_acceptance_evidence("CHK-B")
+        self._write_acceptance_review(
+            "CHK-B",
+            review_verdict="block",
+            contract_closure="failed",
+            evidence_sufficiency="conflicting",
+            gap_severity="semantic",
+            gaps=["Semantic closure is not achieved."],
+        )
+
+        completed = run_cmd(
+            ["check", "--id", "PLAN-T-001", "--checkpoint", "CHK-B"],
+            self.root,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 2)
+        gate = read_json(self._gate_path("CHK-B"))
+        self.assertEqual(gate["verdict"], "fail")
+        self.assertEqual(gate["acceptance_gaps"], ["Semantic closure is not achieved."])
+
+    def test_acceptance_declared_out_of_scope_does_not_create_gap(self) -> None:
+        self._init_acceptance_checkpoint()
+        self._write_acceptance_evidence("CHK-B")
+        evidence = read_json(self._evidence_path("CHK-B"))
+        evidence["declared_out_of_scope"] = [
+            "Follow-up workflow automation is intentionally deferred.",
+            "Standalone verifier skill extraction is out of scope.",
+        ]
+        self._evidence_path("CHK-B").write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+        self._write_acceptance_review("CHK-B")
+
+        completed = run_cmd(
+            ["check", "--id", "PLAN-T-001", "--checkpoint", "CHK-B"],
+            self.root,
+        )
+
+        self.assertEqual(completed.returncode, 0)
+        gate = read_json(self._gate_path("CHK-B"))
+        self.assertEqual(gate["verdict"], "pass")
+        self.assertEqual(gate["acceptance_gaps"], [])
 
     def test_waive_records_reason(self) -> None:
         run_cmd(

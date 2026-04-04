@@ -16,3 +16,4 @@
 - The skill should complement plans, not replace them.
 - Use a clear `plan_id` + `checkpoint` pair whenever possible.
 - Treat `acceptance` as a profile under checkpoint ownership, not as a new verdict owner.
+- Once a checkpoint enters formal `acceptance` verification, require an independent acceptance review artifact instead of relying on executor self-check alone.

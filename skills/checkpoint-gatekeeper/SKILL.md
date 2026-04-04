@@ -51,15 +51,17 @@ Use the skill-bundled `scripts/smoke.sh` for structure and minimal CLI-contract 
 1. Confirm the target `plan_id` and `checkpoint`.
 2. Confirm whether the checkpoint uses the default validation profile or an `acceptance` profile.
 3. Create or refresh checklist and gate artifacts under `docs/checkpoints/<PLAN-ID>/`.
-4. Run validation commands for the checkpoint.
-5. If validation fails and the checklist allows it, run bounded current-checkpoint remediation commands, then revalidate.
-6. Emit one verdict:
+4. For `acceptance`, prepare the evidence artifact that captures contract linkage, changed artifacts, and executor-side evidence references.
+5. Run validation commands for the checkpoint.
+6. If validation fails and the checklist allows it, run bounded current-checkpoint remediation commands, then revalidate.
+7. For formal `acceptance` verification, require an independent acceptance review artifact. Executor-side self-check may inform the evidence artifact, but it does not satisfy the review requirement by itself.
+8. Emit one verdict:
    - `pass`
    - `auto_fixed_pass`
    - `fail`
    - `needs_user_confirmation`
    - `waived`
-7. Escalate only when the result is ambiguous, risky, or would require a scope/standard change.
+9. Escalate only when the result is ambiguous, risky, or would require a scope/standard change.
 
 ## Hard Rules
 - Never mutate `docs/plans/PLAN_INDEX.json`.
@@ -68,6 +70,7 @@ Use the skill-bundled `scripts/smoke.sh` for structure and minimal CLI-contract 
 - Keep auto-remediation bounded to the current checkpoint and explicit remediation commands.
 - If high-risk or ambiguous signals appear, emit `needs_user_confirmation` instead of forcing a pass.
 - `acceptance` profile must remain a checkpoint profile, not a new lifecycle or verdict owner.
+- Formal `acceptance` verification must consume an independent review artifact; executor self-check alone cannot produce a passing acceptance verdict.
 
 ## Resource Map
 - Read `references/positioning-boundary.md` for scope and layer split.

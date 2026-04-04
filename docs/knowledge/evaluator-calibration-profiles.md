@@ -87,6 +87,7 @@ Assess whether a sprint or work slice is semantically complete while keeping ver
 - smoke or regression outputs when applicable
 - changed artifact paths
 - example or documentation updates when they are part of the contract
+- an independent acceptance review artifact for formal verification tasks
 
 ### Evaluation Dimensions
 
@@ -102,13 +103,13 @@ Assess whether a sprint or work slice is semantically complete while keeping ver
 ### Default Verdict Guidance
 
 - `pass`
-  - contract closure is satisfied and evidence is sufficient
+  - contract closure is satisfied, evidence is sufficient, and independent review accepts the slice
 - `auto_fixed_pass`
-  - only when bounded remediation inside the checkpoint fixes the issue and the contract is then satisfied
+  - only when bounded remediation inside the checkpoint fixes the issue and the contract is then satisfied under independent review
 - `fail`
-  - semantic closure is not achieved within checkpoint bounds
+  - semantic closure is not achieved within checkpoint bounds, or independent review blocks closure
 - `needs_user_confirmation`
-  - the checkpoint is close to done but acceptance depends on a risky standard change or ambiguous interpretation
+  - the checkpoint is close to done but acceptance depends on a risky standard change, ambiguous interpretation, or missing independent review evidence
 
 ### False-Positive Risks
 

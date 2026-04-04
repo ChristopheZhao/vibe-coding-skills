@@ -5,6 +5,9 @@
 - One checkpoint produces:
   - `CHK-<checkpoint>-checklist.md`
   - `CHK-<checkpoint>-gate.json`
+- `acceptance` checkpoints also produce or consume:
+  - `CHK-<checkpoint>-evidence.json`
+  - `CHK-<checkpoint>-acceptance-review.json`
 
 ## Checklist File
 - Path: `docs/checkpoints/<PLAN-ID>/CHK-<checkpoint>-checklist.md`
@@ -16,6 +19,12 @@
   "plan_id": "PLAN-20260322-001",
   "checkpoint": "CHK-A",
   "title": "Checkpoint A",
+  "profile": "acceptance",
+  "acceptance_target": "semantic closure for checkpoint A",
+  "required_evidence": [
+    "smoke output linked",
+    "changed artifacts listed"
+  ],
   "allow_auto_fix": true,
   "max_auto_fix_rounds": 1,
   "validation_commands": [
@@ -45,3 +54,32 @@
   - summary
   - attempt records
   - waiver metadata when present
+  - for `acceptance`, evidence and review artifact paths plus acceptance gap list
+
+## Acceptance Evidence File
+- Path: `docs/checkpoints/<PLAN-ID>/CHK-<checkpoint>-evidence.json`
+- Required fields:
+  - `plan_id`
+  - `checkpoint`
+  - `acceptance_target`
+  - `contract_ref`
+  - `evidence_refs`
+  - `changed_artifact_paths`
+  - `negative_cases`
+  - `declared_out_of_scope`
+  - `executor_summary`
+
+## Acceptance Review File
+- Path: `docs/checkpoints/<PLAN-ID>/CHK-<checkpoint>-acceptance-review.json`
+- Produced by an independent reviewer for formal `acceptance` verification.
+- Required fields:
+  - `plan_id`
+  - `checkpoint`
+  - `reviewer_kind`
+  - `review_verdict`
+  - `contract_closure`
+  - `evidence_sufficiency`
+  - `gap_severity`
+  - `gaps`
+  - `cited_evidence`
+  - `summary`

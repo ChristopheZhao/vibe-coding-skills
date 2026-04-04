@@ -30,6 +30,11 @@ DEFAULT_USER_CONFIRMATION_TRIGGERS = [
 
 VALID_PROFILES = {"default", "acceptance"}
 
+ACCEPTANCE_REVIEW_VERDICTS = {"accept", "revise", "block"}
+ACCEPTANCE_CONTRACT_CLOSURE = {"satisfied", "partial", "failed"}
+ACCEPTANCE_EVIDENCE_SUFFICIENCY = {"sufficient", "insufficient", "conflicting"}
+ACCEPTANCE_GAP_SEVERITY = {"none", "cosmetic", "semantic"}
+
 NON_PASS_EXIT_CODES = {
     "pending": 4,
     "fail": 2,
@@ -71,6 +76,16 @@ def gate_path(root: Path, plan_id: str, checkpoint: str) -> Path:
     return checkpoints_dir(root, plan_id) / f"{slug}-gate.json"
 
 
+def evidence_path(root: Path, plan_id: str, checkpoint: str) -> Path:
+    slug = checkpoint_slug(checkpoint)
+    return checkpoints_dir(root, plan_id) / f"{slug}-evidence.json"
+
+
+def acceptance_review_path(root: Path, plan_id: str, checkpoint: str) -> Path:
+    slug = checkpoint_slug(checkpoint)
+    return checkpoints_dir(root, plan_id) / f"{slug}-acceptance-review.json"
+
+
 def relpath(path: Path, root: Path) -> str:
     try:
         return str(path.relative_to(root))
@@ -85,6 +100,15 @@ def load_json(path: Path) -> Any:
         fail(f"missing file: {path}")
     except json.JSONDecodeError as exc:
         fail(f"invalid json in {path}: {exc}")
+
+
+def try_load_json(path: Path) -> tuple[Any | None, str | None]:
+    try:
+        return json.loads(path.read_text(encoding="utf-8")), None
+    except FileNotFoundError:
+        return None, f"Missing artifact: {path.name}."
+    except json.JSONDecodeError as exc:
+        return None, f"Invalid JSON in {path.name}: {exc}."
 
 
 def dump_json(path: Path, payload: dict[str, Any]) -> None:
@@ -147,6 +171,20 @@ def default_spec(args: argparse.Namespace) -> dict[str, Any]:
         spec["acceptance_target"] = str(args.acceptance_target or "")
         spec["required_evidence"] = list(args.required_evidence or [])
     return normalize_acceptance_fields(spec)
+
+
+def default_evidence_payload(spec: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "plan_id": spec["plan_id"],
+        "checkpoint": spec["checkpoint"],
+        "acceptance_target": spec.get("acceptance_target", ""),
+        "contract_ref": "",
+        "evidence_refs": [],
+        "changed_artifact_paths": [],
+        "negative_cases": [],
+        "declared_out_of_scope": [],
+        "executor_summary": "",
+    }
 
 
 def render_checklist(spec: dict[str, Any]) -> str:
@@ -225,6 +263,11 @@ def default_gate_payload(root: Path, spec: dict[str, Any]) -> dict[str, Any]:
         payload["acceptance_target"] = spec.get("acceptance_target", "")
         payload["acceptance_gaps"] = []
         payload["required_evidence"] = list(spec.get("required_evidence") or [])
+        payload["evidence_path"] = relpath(evidence_path(root, spec["plan_id"], spec["checkpoint"]), root)
+        payload["acceptance_review_path"] = relpath(
+            acceptance_review_path(root, spec["plan_id"], spec["checkpoint"]),
+            root,
+        )
     return payload
 
 
@@ -240,31 +283,180 @@ def load_gate_or_default(root: Path, spec: dict[str, Any]) -> dict[str, Any]:
             payload.setdefault("acceptance_target", spec.get("acceptance_target", ""))
             payload.setdefault("acceptance_gaps", [])
             payload.setdefault("required_evidence", list(spec.get("required_evidence") or []))
+            payload.setdefault(
+                "evidence_path",
+                relpath(evidence_path(root, spec["plan_id"], spec["checkpoint"]), root),
+            )
+            payload.setdefault(
+                "acceptance_review_path",
+                relpath(acceptance_review_path(root, spec["plan_id"], spec["checkpoint"]), root),
+            )
         return payload
     return default_gate_payload(root, spec)
 
 
-def acceptance_gaps_for(spec: dict[str, Any], verdict: str) -> list[str]:
-    if normalize_profile(spec.get("profile")) != "acceptance":
+def validate_string_list(value: Any, field_name: str, gaps: list[str], *, required: bool = False) -> list[str]:
+    if value is None:
+        if required:
+            gaps.append(f"Missing {field_name}.")
         return []
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        gaps.append(f"Invalid {field_name}; expected string list.")
+        return []
+    if required and not value:
+        gaps.append(f"Missing {field_name}.")
+    return [str(item) for item in value]
+
+
+def validate_acceptance_evidence(
+    spec: dict[str, Any], payload: Any, gaps: list[str]
+) -> dict[str, Any] | None:
+    if not isinstance(payload, dict):
+        gaps.append("Invalid evidence artifact payload; expected JSON object.")
+        return None
+    if payload.get("plan_id") != spec["plan_id"]:
+        gaps.append("Evidence artifact plan_id mismatch.")
+    if checkpoint_slug(str(payload.get("checkpoint", ""))) != checkpoint_slug(spec["checkpoint"]):
+        gaps.append("Evidence artifact checkpoint mismatch.")
+    acceptance_target = str(payload.get("acceptance_target") or "")
+    if acceptance_target != str(spec.get("acceptance_target") or ""):
+        gaps.append("Evidence artifact acceptance_target mismatch.")
+    contract_ref = str(payload.get("contract_ref") or "").strip()
+    if not contract_ref:
+        gaps.append("Missing contract_ref in evidence artifact.")
+    evidence_refs = validate_string_list(payload.get("evidence_refs"), "evidence_refs", gaps, required=True)
+    changed_artifact_paths = validate_string_list(
+        payload.get("changed_artifact_paths"),
+        "changed_artifact_paths",
+        gaps,
+        required=True,
+    )
+    negative_cases = validate_string_list(payload.get("negative_cases"), "negative_cases", gaps)
+    declared_out_of_scope = validate_string_list(
+        payload.get("declared_out_of_scope"),
+        "declared_out_of_scope",
+        gaps,
+    )
+    executor_summary = str(payload.get("executor_summary") or "").strip()
+    if not executor_summary:
+        gaps.append("Missing executor_summary in evidence artifact.")
+    return {
+        "acceptance_target": acceptance_target,
+        "contract_ref": contract_ref,
+        "evidence_refs": evidence_refs,
+        "changed_artifact_paths": changed_artifact_paths,
+        "negative_cases": negative_cases,
+        "declared_out_of_scope": declared_out_of_scope,
+        "executor_summary": executor_summary,
+    }
+
+
+def validate_acceptance_review(
+    spec: dict[str, Any], payload: Any, gaps: list[str]
+) -> dict[str, Any] | None:
+    if not isinstance(payload, dict):
+        gaps.append("Invalid acceptance review payload; expected JSON object.")
+        return None
+    if payload.get("plan_id") != spec["plan_id"]:
+        gaps.append("Acceptance review plan_id mismatch.")
+    if checkpoint_slug(str(payload.get("checkpoint", ""))) != checkpoint_slug(spec["checkpoint"]):
+        gaps.append("Acceptance review checkpoint mismatch.")
+    reviewer_kind = str(payload.get("reviewer_kind") or "").strip()
+    if not reviewer_kind:
+        gaps.append("Missing reviewer_kind in acceptance review artifact.")
+    review_verdict = str(payload.get("review_verdict") or "").strip()
+    if review_verdict not in ACCEPTANCE_REVIEW_VERDICTS:
+        gaps.append("Invalid review_verdict in acceptance review artifact.")
+    contract_closure = str(payload.get("contract_closure") or "").strip()
+    if contract_closure not in ACCEPTANCE_CONTRACT_CLOSURE:
+        gaps.append("Invalid contract_closure in acceptance review artifact.")
+    evidence_sufficiency = str(payload.get("evidence_sufficiency") or "").strip()
+    if evidence_sufficiency not in ACCEPTANCE_EVIDENCE_SUFFICIENCY:
+        gaps.append("Invalid evidence_sufficiency in acceptance review artifact.")
+    gap_severity = str(payload.get("gap_severity") or "").strip()
+    if gap_severity not in ACCEPTANCE_GAP_SEVERITY:
+        gaps.append("Invalid gap_severity in acceptance review artifact.")
+    review_gaps = validate_string_list(payload.get("gaps"), "gaps", gaps)
+    cited_evidence = validate_string_list(payload.get("cited_evidence"), "cited_evidence", gaps, required=True)
+    summary = str(payload.get("summary") or "").strip()
+    if not summary:
+        gaps.append("Missing summary in acceptance review artifact.")
+    if review_verdict == "accept":
+        if contract_closure != "satisfied":
+            gaps.append("Acceptance review marked accept without satisfied contract_closure.")
+        if evidence_sufficiency != "sufficient":
+            gaps.append("Acceptance review marked accept without sufficient evidence.")
+        if gap_severity not in {"none", "cosmetic"}:
+            gaps.append("Acceptance review marked accept with semantic gap severity.")
+    return {
+        "reviewer_kind": reviewer_kind,
+        "review_verdict": review_verdict,
+        "contract_closure": contract_closure,
+        "evidence_sufficiency": evidence_sufficiency,
+        "gap_severity": gap_severity,
+        "gaps": review_gaps,
+        "cited_evidence": cited_evidence,
+        "summary": summary,
+    }
+
+
+def evaluate_acceptance(
+    root: Path, spec: dict[str, Any], base_verdict: str, base_summary: str
+) -> tuple[str, str, list[str]]:
     gaps: list[str] = []
     if not str(spec.get("acceptance_target") or "").strip():
         gaps.append("Missing acceptance target.")
     if not list(spec.get("required_evidence") or []):
         gaps.append("Missing required evidence list.")
-    if verdict not in {"pass", "auto_fixed_pass", "waived"}:
-        gaps.append("Semantic acceptance is not yet satisfied.")
-    return gaps
 
+    evidence_payload, evidence_error = try_load_json(evidence_path(root, spec["plan_id"], spec["checkpoint"]))
+    if evidence_error:
+        gaps.append(evidence_error)
+        evidence = None
+    else:
+        evidence = validate_acceptance_evidence(spec, evidence_payload, gaps)
 
-def acceptance_summary_for(spec: dict[str, Any], verdict: str, summary: str) -> str:
-    if normalize_profile(spec.get("profile")) != "acceptance":
-        return summary
-    gaps = acceptance_gaps_for(spec, verdict)
+    review_payload, review_error = try_load_json(
+        acceptance_review_path(root, spec["plan_id"], spec["checkpoint"])
+    )
+    if review_error:
+        gaps.append(review_error)
+        review = None
+    else:
+        review = validate_acceptance_review(spec, review_payload, gaps)
+
     if gaps:
-        return f"{summary} Acceptance gaps: {' '.join(gaps)}"
+        return (
+            "needs_user_confirmation",
+            f"{base_summary} Acceptance gaps: {' '.join(gaps)}",
+            gaps,
+        )
+
+    assert evidence is not None
+    assert review is not None
+
+    review_verdict = review["review_verdict"]
+    review_gaps = [str(item) for item in review.get("gaps") or []]
+    if review_verdict == "block":
+        all_gaps = review_gaps or ["Independent acceptance review blocked semantic closure."]
+        return (
+            "fail",
+            f"{base_summary} Acceptance gaps: {' '.join(all_gaps)}",
+            all_gaps,
+        )
+    if review_verdict == "revise":
+        all_gaps = review_gaps or ["Independent acceptance review requires revision."]
+        return (
+            "needs_user_confirmation",
+            f"{base_summary} Acceptance gaps: {' '.join(all_gaps)}",
+            all_gaps,
+        )
     target = str(spec.get("acceptance_target") or "acceptance target").strip()
-    return f"{summary} Acceptance target satisfied: {target}."
+    return (
+        base_verdict,
+        f"{base_summary} Acceptance target satisfied: {target}.",
+        [],
+    )
 
 
 def run_shell(command: str, root: Path) -> dict[str, Any]:
@@ -319,6 +511,15 @@ def write_gate(root: Path, spec: dict[str, Any], gate_payload: dict[str, Any]) -
         checklist_path(root, spec["plan_id"], spec["checkpoint"]),
         root,
     )
+    if spec["profile"] == "acceptance":
+        gate_payload["evidence_path"] = relpath(
+            evidence_path(root, spec["plan_id"], spec["checkpoint"]),
+            root,
+        )
+        gate_payload["acceptance_review_path"] = relpath(
+            acceptance_review_path(root, spec["plan_id"], spec["checkpoint"]),
+            root,
+        )
     dump_json(path, gate_payload)
     return path
 
@@ -337,6 +538,10 @@ def command_init(args: argparse.Namespace) -> int:
     if args.force or not cpath.exists():
         cpath.parent.mkdir(parents=True, exist_ok=True)
         cpath.write_text(render_checklist(spec), encoding="utf-8")
+    if spec["profile"] == "acceptance":
+        epath = evidence_path(root, args.id, args.checkpoint)
+        if args.force or not epath.exists():
+            dump_json(epath, default_evidence_payload(spec))
 
     gate_payload = load_gate_or_default(root, spec)
     if not gpath.exists():
@@ -349,6 +554,12 @@ def command_init(args: argparse.Namespace) -> int:
         "gate_path": relpath(gpath, root),
         "verdict": gate_payload["verdict"],
     }
+    if spec["profile"] == "acceptance":
+        response["evidence_path"] = relpath(evidence_path(root, args.id, args.checkpoint), root)
+        response["acceptance_review_path"] = relpath(
+            acceptance_review_path(root, args.id, args.checkpoint),
+            root,
+        )
     print(json.dumps(response, indent=2, ensure_ascii=True))
     return 0
 
@@ -432,12 +643,19 @@ def command_check(args: argparse.Namespace) -> int:
     gate_payload["checkpoint"] = spec["checkpoint"]
     gate_payload["title"] = spec["title"]
     gate_payload["profile"] = spec["profile"]
+    if spec["profile"] == "acceptance" and verdict in {"pass", "auto_fixed_pass"}:
+        verdict, summary, acceptance_gaps = evaluate_acceptance(root, spec, verdict, summary)
+    elif spec["profile"] == "acceptance":
+        acceptance_gaps = ["Semantic acceptance is not yet satisfied."]
+    else:
+        acceptance_gaps = []
+
     gate_payload["verdict"] = verdict
-    gate_payload["summary"] = acceptance_summary_for(spec, verdict, summary)
+    gate_payload["summary"] = summary
     gate_payload["waiver"] = gate_payload.get("waiver")
     if spec["profile"] == "acceptance":
         gate_payload["acceptance_target"] = spec.get("acceptance_target", "")
-        gate_payload["acceptance_gaps"] = acceptance_gaps_for(spec, verdict)
+        gate_payload["acceptance_gaps"] = acceptance_gaps
         gate_payload["required_evidence"] = list(spec.get("required_evidence") or [])
     gate_payload.setdefault("attempts", []).append(attempt)
 

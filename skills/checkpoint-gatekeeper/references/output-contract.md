@@ -24,6 +24,8 @@
 - `acceptance_target`
 - `acceptance_gaps`
 - `required_evidence`
+- `evidence_path`
+- `acceptance_review_path`
 
 ## Attempt Record Fields
 - `attempt`
@@ -38,3 +40,5 @@
 - `check` must write deterministic evidence to the gate JSON.
 - Non-passing verdicts must return a non-zero exit code.
 - `acceptance` profile must reuse the same verdict enum rather than inventing a second verdict surface.
+- `acceptance` pass requires both validation success and a valid independent acceptance review artifact.
+- Missing or malformed acceptance evidence or review artifacts must not silently pass; they should escalate as `needs_user_confirmation`.

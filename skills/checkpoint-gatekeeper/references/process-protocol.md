@@ -10,11 +10,19 @@
 - Verdict path: `docs/checkpoints/<PLAN-ID>/CHK-<checkpoint>-gate.json`
 - The checklist is the editable operator surface.
 - The gate JSON is the machine-readable verdict surface.
+- For `acceptance`, also use:
+  - `docs/checkpoints/<PLAN-ID>/CHK-<checkpoint>-evidence.json`
+  - `docs/checkpoints/<PLAN-ID>/CHK-<checkpoint>-acceptance-review.json`
 
 ## 3. Run Validation
 - Execute checkpoint validation commands in repository root.
 - Record command outputs and return codes.
-- For `acceptance`, also record whether contract closure and required evidence are present.
+- For `acceptance`, fill the evidence artifact with:
+  - contract linkage
+  - evidence references
+  - changed artifact paths
+  - negative cases or declared out-of-scope items when applicable
+- Formal `acceptance` verification requires an independent review artifact. The review may be produced by a peer agent or human reviewer, but not by the executor's final self-check alone.
 
 ## 4. Attempt Bounded Remediation
 - If validation fails and the checklist allows auto-fix, run remediation commands.
@@ -29,7 +37,12 @@
 - `waived`: explicit operator override with recorded reason.
 
 For `acceptance` profile:
-- the summary should say whether semantic completion is satisfied or what gaps remain
+- `pass` or `auto_fixed_pass` require:
+  - validation success
+  - a valid evidence artifact
+  - a valid independent acceptance review artifact with `review_verdict=accept`
+- `needs_user_confirmation` is the fallback when acceptance artifacts are missing, malformed, or the independent review requests revision
+- `fail` applies when the independent review blocks semantic closure
 - the verdict still uses the same checkpoint verdict enum
 
 ## 6. Escalation Rules
@@ -37,9 +50,11 @@ For `acceptance` profile:
   - output matches configured confirmation triggers
   - remediation would exceed current-checkpoint bounds
   - remediation policy or pass criteria would need to change
+  - acceptance evidence or independent review artifacts are missing or ambiguous
 
 ## 7. No-Overlap Rules
 - Do not update plan lifecycle state here.
 - Do not archive or complete plans here.
 - Do not silently convert `fail` into `waived`.
 - Do not turn `acceptance` into a second owner surface outside the checkpoint gate.
+- Do not treat executor self-check as the formal independent acceptance review.
