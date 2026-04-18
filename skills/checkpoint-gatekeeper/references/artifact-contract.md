@@ -83,3 +83,15 @@
   - `gaps`
   - `cited_evidence`
   - `summary`
+
+## Plan-Side Validation Ledger Handshake
+- Authoritative checkpoint artifacts remain under `docs/checkpoints/<PLAN-ID>/`.
+- A repo may also keep a governance-side mirror such as `docs/plans/active/PLAN-<plan-id>-validation.md`.
+- That plan-side ledger may summarize:
+  - checkpoint id
+  - verdict
+  - review artifact refs
+  - test command refs
+  - evidence links
+- The plan-side ledger is not written or owned by `checkpoint-gatekeeper`.
+- The plan-side ledger must not replace or contradict the authoritative gate verdict files under `docs/checkpoints/<PLAN-ID>/`.

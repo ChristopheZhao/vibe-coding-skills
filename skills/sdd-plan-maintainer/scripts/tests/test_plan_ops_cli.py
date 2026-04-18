@@ -63,6 +63,11 @@ class PlanOpsCliTests(unittest.TestCase):
             args += ["--note", note]
         return run_cmd(args, self.root, check=check)
 
+    def _write_active_companion(self, filename: str, content: str = "# Companion\n") -> Path:
+        path = self.root / "docs" / "plans" / "active" / filename
+        path.write_text(content, encoding="utf-8")
+        return path
+
     def test_superseded_requires_note_and_updates_doc_status(self) -> None:
         self._create_plan("PLAN-T-001")
         self._status("PLAN-T-001", "in_progress", note="start work")
@@ -123,6 +128,35 @@ class PlanOpsCliTests(unittest.TestCase):
 
         archived_doc = (self.root / item["file_path"]).read_text(encoding="utf-8")
         self.assertIn("- Status: archived", archived_doc)
+
+    def test_doctor_allows_indexed_companion_governance_docs(self) -> None:
+        self._create_plan("PLAN-T-005", title="Governed Plan")
+        self._write_active_companion("PLAN-T-005-validation.md")
+        self._write_active_companion("PLAN-T-005-stage-a-governance-freeze.md")
+        self._write_active_companion("PLAN-T-005-stage-b-responsibility-inventory.md")
+
+        result = run_cmd(["doctor", "--json"], self.root)
+        payload = json.loads(result.stdout)
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["issue_count"], 0)
+
+    def test_doctor_rejects_unknown_companion_governance_doc(self) -> None:
+        self._create_plan("PLAN-T-006", title="Known Plan")
+        self._write_active_companion("PLAN-T-999-validation.md")
+
+        failed = run_cmd(["doctor", "--json"], self.root, check=False)
+        payload = json.loads(failed.stdout)
+
+        self.assertFalse(payload["ok"])
+        self.assertEqual(failed.returncode, 1)
+        self.assertTrue(
+            any(
+                issue["code"] == "orphan_plan_file"
+                and issue["file_path"] == "docs/plans/active/PLAN-T-999-validation.md"
+                for issue in payload["issues"]
+            )
+        )
 
 
 if __name__ == "__main__":

@@ -46,6 +46,9 @@ STATUS_ORDER: List[str] = [
     "archived",
 ]
 
+COMPANION_DOC_SUFFIXES: Tuple[str, ...] = ("-validation.md",)
+COMPANION_STAGE_MARKER = "-stage-"
+
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -185,6 +188,16 @@ def is_archive_plan_path(file_path: str) -> bool:
     return Path(file_path).parts[:3] == ("docs", "plans", "archive")
 
 
+def extract_companion_plan_id(file_path: str) -> str | None:
+    name = Path(file_path).name
+    for suffix in COMPANION_DOC_SUFFIXES:
+        if name.endswith(suffix):
+            return name[: -len(suffix)] or None
+    if name.endswith(".md") and COMPANION_STAGE_MARKER in name:
+        return name.split(COMPANION_STAGE_MARKER, 1)[0] or None
+    return None
+
+
 def extract_plan_doc_status(content: str) -> Tuple[str | None, bool]:
     for line in content.splitlines():
         if line.strip().startswith("- Status:"):
@@ -259,6 +272,7 @@ def gather_consistency_issues(
 
     seen_ids: Set[str] = set()
     referenced_paths: Set[str] = set()
+    indexed_items_by_id: Dict[str, Dict[str, Any]] = {}
     for raw in plans:
         if not isinstance(raw, dict):
             issues.append(make_issue(code="invalid_plan_item", message="index plan entry must be an object"))
@@ -290,6 +304,7 @@ def gather_consistency_issues(
             issues.append(make_issue(code="missing_file_path", plan_id=plan_id, message="missing file_path in index"))
             continue
 
+        indexed_items_by_id[plan_id] = raw
         referenced_paths.add(file_path)
         plan_path = root / file_path
         if not plan_path.exists():
@@ -370,6 +385,13 @@ def gather_consistency_issues(
 
     orphan_paths = sorted(discovered_paths - referenced_paths)
     for file_path in orphan_paths:
+        companion_plan_id = extract_companion_plan_id(file_path)
+        if companion_plan_id:
+            base_item = indexed_items_by_id.get(companion_plan_id)
+            if base_item is not None:
+                base_path = str(base_item.get("file_path", "")).strip()
+                if base_path and Path(base_path).parent == Path(file_path).parent:
+                    continue
         issues.append(
             make_issue(
                 code="orphan_plan_file",

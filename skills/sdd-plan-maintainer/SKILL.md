@@ -37,6 +37,13 @@ It does not replace normal coding orchestration, tool selection, or full long-ru
 After each governance milestone, return to default Codex execution behavior.
 It may reflect externally supplied planning guardrails in plan output, but it must not discover or own optional guardrail systems itself.
 
+Managed planning may use a split artifact model:
+- one lifecycle-bearing main plan doc
+- optional companion governance docs such as `-validation.md` or `-stage-*.md`
+
+Companion governance docs are durable plan-package artifacts, not independent plans.
+They must not introduce a second lifecycle status machine or a second source of truth outside `PLAN_INDEX.json`.
+
 ## Harness Fusion Boundary
 Use a two-layer architecture to avoid overlap:
 - Governance layer (this skill + the skill-bundled `scripts/plan_ops.py`, resolved relative to this skill root): plan lifecycle status, completion gates, archive, and index consistency.
@@ -47,6 +54,7 @@ Boundary rules:
 - Execution layer must not introduce a second status machine.
 - Governance notes should store milestone evidence, not full execution transcripts.
 - Optional guardrail providers such as `deferred-plan-anchor` remain separate owners; this skill only consumes guardrails when another workflow explicitly supplies them.
+- If managed planning uses companion governance docs, the main plan remains the only lifecycle-bearing plan asset and companion docs stay evidence- or governance-oriented only.
 
 ## Script Decision
 Use the skill-bundled `scripts/plan_ops.py` (resolved relative to this skill root) when lifecycle consistency or auditability is required.
@@ -58,22 +66,24 @@ If script is skipped, still follow `references/process-protocol.md`.
 2. Select persistence mode by request intent.
 3. If external planning guardrails are explicitly supplied, incorporate them into the plan without taking ownership of their source system.
 4. Produce a concrete modular plan with priority and verification steps.
-5. If harness integration is requested, define or refresh execution handoff pointers without changing lifecycle ownership.
-6. If managed mode is active, ensure plan storage and index exist.
-7. Update status only at meaningful milestones.
-8. Gate completion by implementation evidence, testing, and user confirmation.
-9. Archive only after confirmation and closed status.
+5. When the governance shape calls for it, define a managed plan package: one main plan plus optional companion governance docs such as `-validation.md` and `-stage-*.md`.
+6. If harness integration is requested, define or refresh execution handoff pointers without changing lifecycle ownership.
+7. If managed mode is active, ensure plan storage and index exist.
+8. Update status only at meaningful milestones.
+9. Gate completion by implementation evidence, testing, and user confirmation.
+10. Archive only after confirmation and closed status.
 
 ## Hard Gates
 - `completed` requires implementation done, tests passed, and user confirmation.
 - `archived` requires user confirmation and an already closed plan (`completed` or `superseded`).
 - `blocked` must include a concrete blocker note and next action.
 - `superseded` requires a concrete note explaining why the plan direction was invalidated and what should be used instead.
+- Companion governance docs must never carry independent lifecycle truth; they may summarize evidence, stage freezes, or validation outcomes, but `PLAN_INDEX.json` remains the only lifecycle source of truth.
 
 ## Resource Map
 - Read `references/process-protocol.md` for activation and boundary policy.
 - Read `references/activation-regression-cases.md` for trigger and non-trigger regression checks.
-- Read `references/plan-templates.md` for plan content templates.
+- Read `references/plan-templates.md` for main-plan and companion-governance templates.
 - Read `references/plan-ops-cookbook.md` for operation commands.
 - Read `references/status-diff-worktree-guide.md` for status visibility, compare-file tracking, and optional worktree context.
 - Read `references/harness-fusion-pattern.md` when integrating long-running execution harnesses.

@@ -15,7 +15,8 @@ Preserve plan-governance rigor while enabling resilient execution recovery acros
   - Owns rapid progress snapshots between governance milestones.
 
 ## 3. Canonical Data Surfaces
-- `docs/plans/active/<plan>.md`: authoritative plan narrative and checklist.
+- `docs/plans/active/<plan>.md`: authoritative lifecycle-bearing plan narrative and checklist.
+- `docs/plans/active/<plan>-validation.md` or `docs/plans/active/<plan>-stage-*.md`: optional companion governance docs for review/test evidence and stage-freeze detail.
 - `docs/plans/PLAN_INDEX.json`: authoritative lifecycle metadata and status source of truth.
 
 Shared memory is the persistent plan documentation system itself. Do not create a second lifecycle store.
@@ -34,6 +35,7 @@ Shared memory is the persistent plan documentation system itself. Do not create 
 - No second status machine outside `docs/plans/PLAN_INDEX.json` (plan header is mirror-only).
 - No completion claim in handoff notes.
 - No archive action outside governance layer.
+- No companion governance doc may claim lifecycle truth that conflicts with the main plan or `PLAN_INDEX.json`.
 
 ## 6. Milestone Sync Pattern
 1. Start: load plan file and index as the shared memory baseline.

@@ -23,6 +23,15 @@ Default guidance:
 - New long-running or multi-turn plans should be managed.
 - Status update and archive requests must be managed.
 
+## 2B. Managed Plan Package Model
+When managed mode needs stronger governance separation, use a split package:
+- one main plan doc that carries the lifecycle-bearing `- Status:` header
+- optional companion governance docs such as `PLAN-...-validation.md` or `PLAN-...-stage-*.md`
+
+Companion docs are allowed durable assets under `docs/plans/`, but they do not become separate plans and they do not carry independent lifecycle state.
+`docs/plans/PLAN_INDEX.json` remains the only lifecycle source of truth.
+If checkpoint verification exists under `docs/checkpoints/`, any plan-side validation ledger must mirror or summarize those artifacts rather than replacing them.
+
 ## 2A. Optional External Guardrails
 - If a host workflow explicitly supplies external planning guardrails, reflect them in the plan output.
 - Treat those guardrails as read-only input, not as a second lifecycle system.
@@ -93,6 +102,7 @@ Governance layer responsibilities:
 - Lifecycle status transitions and status notes.
 - Completion and archive gates.
 - `docs/plans/PLAN_INDEX.json` and plan file consistency.
+- Optional companion governance docs under `docs/plans/` that support the main plan without introducing a second status system.
 
 Execution layer responsibilities:
 - Session-level focus and immediate next action.
@@ -105,10 +115,14 @@ Use these single-owner rules:
 - Completion confirmation owner: governance layer only.
 - Session recovery context owner: execution layer only.
 
+Additional companion-doc rule:
+- Companion governance docs may hold stage freeze notes, validation summaries, and evidence links, but they must not become a second lifecycle ledger with independent plan status.
+
 Disallowed overlap:
 - Execution layer keeps a second lifecycle status field.
 - Governance layer stores full step-by-step execution transcripts.
 - Completion is inferred from execution progress without explicit gate checks.
+- Companion docs carry a conflicting plan status or checkpoint verdict that disagrees with the authoritative owner surface.
 
 ## 11. Synchronization Contract
 If both layers are active, synchronize at milestones only:

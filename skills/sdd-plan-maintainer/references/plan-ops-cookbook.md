@@ -28,6 +28,15 @@ Fix:
 uv run --active python <skill-root>/scripts/plan_ops.py create --root . --id PLAN-20260214-002 --title "Router misclassification repair" --kind fix --priority P1
 ```
 
+Managed mode may also use sibling companion governance docs such as:
+- `docs/plans/active/PLAN-20260214-001-validation.md`
+- `docs/plans/active/PLAN-20260214-001-stage-a-governance-freeze.md`
+- `docs/plans/active/PLAN-20260214-001-stage-b-responsibility-inventory.md`
+- `docs/plans/active/PLAN-20260214-001-stage-c-bounded-slice.md`
+
+These companion docs are tied to the indexed main plan by `Plan ID` prefix.
+They are allowed durable artifacts, but they do not become separate indexed plans and must not introduce a second lifecycle state machine.
+
 ## 3. Move Status by Milestone
 ```bash
 uv run --active python <skill-root>/scripts/plan_ops.py status --root . --id PLAN-20260214-001 --status in_progress --note "Started implementation"
@@ -72,6 +81,9 @@ uv run --active python <skill-root>/scripts/plan_ops.py doctor --root . --fix
 uv run --active python <skill-root>/scripts/plan_ops.py doctor --root . --json
 ```
 
+The doctor accepts recognized companion governance docs when they are sibling files of an indexed main plan.
+Unknown files under `docs/plans/active/` or `docs/plans/archive/` still surface as `orphan_plan_file`.
+
 ## 9. Generate Status Dashboard
 Generate a human-readable status dashboard:
 
@@ -107,6 +119,7 @@ git diff -- docs/plans/active docs/plans/archive
 Checkpoints:
 - Index status transition is correct.
 - Plan markdown status/log is aligned when edited.
+- Companion governance docs only mirror or elaborate governance evidence; they do not carry conflicting lifecycle truth.
 - Archive move is visible when plan is closed.
 
 For optional parallel execution context, see `references/status-diff-worktree-guide.md`.

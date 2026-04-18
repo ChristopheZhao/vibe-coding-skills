@@ -42,6 +42,7 @@ This skill does not:
 Boundary rule:
 - Gate verdicts are not plan lifecycle statuses.
 - This skill may read plan checkpoints for linkage, but it must not mutate plan lifecycle state.
+- If a repo keeps a plan-side validation ledger such as `docs/plans/*-validation.md`, that ledger is a governance-owned mirror only. The authoritative gate surface remains `docs/checkpoints/<PLAN-ID>/`.
 
 ## Script Decision
 Use the skill-bundled `scripts/gate_ops.py` (resolved relative to this skill root) for deterministic artifact creation, validation loops, verdict writing, and waiver handling.
@@ -71,6 +72,7 @@ Use the skill-bundled `scripts/smoke.sh` for structure and minimal CLI-contract 
 - If high-risk or ambiguous signals appear, emit `needs_user_confirmation` instead of forcing a pass.
 - `acceptance` profile must remain a checkpoint profile, not a new lifecycle or verdict owner.
 - Formal `acceptance` verification must consume an independent review artifact; executor self-check alone cannot produce a passing acceptance verdict.
+- If a plan-side validation ledger exists, treat it as a summary mirror maintained by plan governance; do not treat it as a second checkpoint verdict store.
 
 ## Resource Map
 - Read `references/positioning-boundary.md` for scope and layer split.
